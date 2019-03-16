@@ -1,0 +1,217 @@
+C51 COMPILER V9.00   MAIN                                                                  03/15/2019 16:52:52 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND CODE
+
+line level    source
+
+   1          #include "reg51.h"
+   2          #include "intrins.h"
+   3          
+   4          unsigned char seg[10] =
+   5          {
+   6              0xC0, 0xf9, 0xa4, 0xb0, 0x99,
+   7              0x92, 0x82, 0xf8, 0x80, 0x90
+   8          };
+   9          unsigned char buf[4] = {0, 0, 0, 0};
+  10          
+  11          void delay(unsigned int count)
+  12          {
+  13   1          unsigned int i;
+  14   1          for(i = 0; i < count; i++);
+  15   1      }
+  16          
+  17          main(void)
+  18          {
+  19   1          int i;
+  20   1          unsigned char j;
+  21   1          while(1)
+  22   1          {
+  23   2              for(i = 0; i < 9999; i++)
+  24   2              {
+  25   3                  for(j = 0; j < 50; j++)
+  26   3                  {
+  27   4                      P2 = 0x07;
+  28   4                      P1 = seg[(i/100)/10];
+  29   4                      delay(100);
+  30   4                      P2 = 0x0b;
+  31   4                      P1 = seg[(i/100)%10];
+  32   4                      delay(100);
+  33   4                      P2 = 0x0d;
+  34   4                      P1 = seg[(i%100)/10];
+  35   4                      delay(100);
+  36   4                      P2 = 0x0e;
+  37   4                      P1 = seg[(i%100)%10];
+  38   4                      delay(100);
+  39   4                  }
+  40   3              }
+  41   2          }
+  42   1      }
+C51 COMPILER V9.00   MAIN                                                                  03/15/2019 16:52:52 PAGE 2   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION L?0017 (BEGIN)
+0000 120000      E     LCALL   ?C?SIDIV
+0003 7400        R     MOV     A,#LOW seg
+0005 2F                ADD     A,R7
+0006         L?0018:
+0006 F8                MOV     R0,A
+0007 E6                MOV     A,@R0
+0008 F590              MOV     P1,A
+000A 7F64              MOV     R7,#064H
+000C 7E00              MOV     R6,#00H
+             ; FUNCTION _delay (BEGIN)
+                                           ; SOURCE LINE # 11
+;---- Variable 'count' assigned to Register 'R6/R7' ----
+                                           ; SOURCE LINE # 12
+                                           ; SOURCE LINE # 14
+;---- Variable 'i' assigned to Register 'R4/R5' ----
+000E E4                CLR     A
+000F FD                MOV     R5,A
+0010 FC                MOV     R4,A
+0011         ?C0001:
+0011 C3                CLR     C
+0012 ED                MOV     A,R5
+0013 9F                SUBB    A,R7
+0014 EC                MOV     A,R4
+0015 9E                SUBB    A,R6
+0016 5007              JNC     ?C0004
+0018 0D                INC     R5
+0019 BD0001            CJNE    R5,#00H,?C0014
+001C 0C                INC     R4
+001D         ?C0014:
+001D 80F2              SJMP    ?C0001
+                                           ; SOURCE LINE # 15
+001F         ?C0004:
+001F 22                RET     
+             ; FUNCTION _delay (END)
+
+             ; FUNCTION main (BEGIN)
+                                           ; SOURCE LINE # 17
+                                           ; SOURCE LINE # 18
+0000         ?C0005:
+                                           ; SOURCE LINE # 21
+                                           ; SOURCE LINE # 22
+                                           ; SOURCE LINE # 23
+;---- Variable 'i' assigned to Register 'R2/R3' ----
+0000 E4                CLR     A
+0001 FB                MOV     R3,A
+0002 FA                MOV     R2,A
+0003         ?C0007:
+                                           ; SOURCE LINE # 24
+                                           ; SOURCE LINE # 25
+0003 E4                CLR     A
+0004 F500        R     MOV     j,A
+0006         ?C0010:
+                                           ; SOURCE LINE # 26
+                                           ; SOURCE LINE # 27
+0006 75A007            MOV     P2,#07H
+                                           ; SOURCE LINE # 28
+0009 7C00              MOV     R4,#00H
+000B 7D64              MOV     R5,#064H
+C51 COMPILER V9.00   MAIN                                                                  03/15/2019 16:52:52 PAGE 3   
+
+000D AF03              MOV     R7,AR3
+000F AE02              MOV     R6,AR2
+0011 120000      E     LCALL   ?C?SIDIV
+0014 7C00              MOV     R4,#00H
+0016 7D0A              MOV     R5,#0AH
+                                           ; SOURCE LINE # 29
+0018 120000      R     LCALL   L?0017
+                                           ; SOURCE LINE # 30
+001B 75A00B            MOV     P2,#0BH
+                                           ; SOURCE LINE # 31
+001E 7C00              MOV     R4,#00H
+0020 7D64              MOV     R5,#064H
+0022 AF03              MOV     R7,AR3
+0024 AE02              MOV     R6,AR2
+0026 120000      E     LCALL   ?C?SIDIV
+0029 7C00              MOV     R4,#00H
+002B 7D0A              MOV     R5,#0AH
+002D 120000      E     LCALL   ?C?SIDIV
+0030 7400        R     MOV     A,#LOW seg
+0032 2D                ADD     A,R5
+                                           ; SOURCE LINE # 32
+0033 120000      R     LCALL   L?0018
+                                           ; SOURCE LINE # 33
+0036 75A00D            MOV     P2,#0DH
+                                           ; SOURCE LINE # 34
+0039 7C00              MOV     R4,#00H
+003B 7D64              MOV     R5,#064H
+003D AF03              MOV     R7,AR3
+003F AE02              MOV     R6,AR2
+0041 120000      E     LCALL   ?C?SIDIV
+0044 7E00              MOV     R6,#00H
+0046 7F0A              MOV     R7,#0AH
+0048 CF                XCH     A,R7
+0049 CD                XCH     A,R5
+004A CF                XCH     A,R7
+004B CE                XCH     A,R6
+004C CC                XCH     A,R4
+004D CE                XCH     A,R6
+                                           ; SOURCE LINE # 35
+004E 120000      R     LCALL   L?0017
+                                           ; SOURCE LINE # 36
+0051 75A00E            MOV     P2,#0EH
+                                           ; SOURCE LINE # 37
+0054 7C00              MOV     R4,#00H
+0056 7D64              MOV     R5,#064H
+0058 AF03              MOV     R7,AR3
+005A AE02              MOV     R6,AR2
+005C 120000      E     LCALL   ?C?SIDIV
+005F 7E00              MOV     R6,#00H
+0061 7F0A              MOV     R7,#0AH
+0063 CF                XCH     A,R7
+0064 CD                XCH     A,R5
+0065 CF                XCH     A,R7
+0066 CE                XCH     A,R6
+0067 CC                XCH     A,R4
+0068 CE                XCH     A,R6
+0069 120000      E     LCALL   ?C?SIDIV
+006C 7400        R     MOV     A,#LOW seg
+006E 2D                ADD     A,R5
+                                           ; SOURCE LINE # 38
+006F 120000      R     LCALL   L?0018
+                                           ; SOURCE LINE # 39
+C51 COMPILER V9.00   MAIN                                                                  03/15/2019 16:52:52 PAGE 4   
+
+0072 0500        R     INC     j
+0074 E500        R     MOV     A,j
+0076 C3                CLR     C
+0077 9432              SUBB    A,#032H
+0079 408B              JC      ?C0010
+                                           ; SOURCE LINE # 40
+007B         ?C0009:
+007B 0B                INC     R3
+007C BB0001            CJNE    R3,#00H,?C0015
+007F 0A                INC     R2
+0080         ?C0015:
+0080 EB                MOV     A,R3
+0081 640F              XRL     A,#0FH
+0083 7003              JNZ     ?C0016
+0085 EA                MOV     A,R2
+0086 6427              XRL     A,#027H
+0088         ?C0016:
+0088 6003              JZ      $ + 5H
+008A 020000      R     LJMP    ?C0007
+008D 020000      R     LJMP    ?C0005
+             ; FUNCTION main (END)
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    176    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
