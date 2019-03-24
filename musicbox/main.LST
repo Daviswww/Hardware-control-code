@@ -1,0 +1,229 @@
+C51 COMPILER V9.00   MAIN                                                                  03/22/2019 15:58:00 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE main.c DEBUG OBJECTEXTEND CODE
+
+line level    source
+
+   1          #include "reg51.h"
+   2          /*
+   3          #define clk 12000000/12/2
+   4          sbit BZpin=0x90;
+   5          bit timeout=0;
+   6          sbit sw=0xa0;
+   7          char one;
+   8          char zero;
+   9          bit KeyData=1;
+  10          unsigned char key=0;
+  11          unsigned int time;
+  12          unsigned int value;
+  13          unsigned int temp;
+  14          
+  15          unsigned int table1[16] = {
+  16              262, 294, 330, 349, 392, 440, 494, 523,
+  17              587, 659, 698, 784, 880, 988, 1046, 1175
+  18          };
+  19          unsigned int table2[20] = {
+  20              253, 238, 212, 190, 179, 159, 142, 126, 119, 
+  21              106, 95, 89, 80, 70, 63, 225, 201, 169, 150, 134
+  22          };
+  23          
+  24          unsigned int code beat[] = {
+  25              1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2,
+  26              1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2,
+  27              1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 0
+  28          };
+  29          unsigned char i=0;
+  30          unsigned char j=0;
+  31          unsigned char k=0;
+  32          */
+  33          unsigned int r[] = {
+  34              61, 65, 73, 82, 87, 98, 110, 123, 131, 147, 
+  35              164, 174, 196, 220, 247, 69, 8, 92, 104, 116
+  36          };
+  37          unsigned int code song[] = {
+  38              1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0
+  39          };
+  40          void delay(unsigned char count);
+  41          unsigned int i = 0;
+  42          main()
+  43          {
+  44   1      
+  45   1          while(1)
+  46   1          {
+  47   2              P1=0xAA;
+  48   2              delay(r[song[i]]);
+  49   2              P1=0x55;
+  50   2              delay(r[song[i]]);
+  51   2              i++;
+  52   2              if(song[i]==0)
+  53   2              {
+  54   3                  i = 0;
+  55   3              }
+C51 COMPILER V9.00   MAIN                                                                  03/22/2019 15:58:00 PAGE 2   
+
+  56   2          }
+  57   1      }
+  58          void delay(unsigned char count)
+  59          {
+  60   1          unsigned int j = 0;
+  61   1          for(j = 0; j < count; j++);
+  62   1      }
+  63          /*
+  64          void tone(unsigned int frequency)
+  65          {
+  66              if(temp!=frequency)
+  67              {
+  68                  temp=frequency;
+  69                  value=clk/frequency;
+  70                  value=(65536-value)+15;
+  71              }
+  72              TR0=1;
+  73          }
+  74          void noTone()
+  75          {
+  76              TR0=0;
+  77              BZpin=0;
+  78          }
+  79          
+  80          void T0_int(void) interrupt 1
+  81          {
+  82              TR0=0;
+  83              TH0=value/256;
+  84              TL0=value%256;
+  85              TR0=1;
+  86              BZpin=~BZpin;
+  87          }
+  88          
+  89          void T1_int(void) interrupt 3
+  90          {
+  91              TR1=0;
+  92              TH1=(65536-1000)/256;
+  93              TL1=(65536-1000)%256;
+  94              TR1=1;
+  95              if(--time==0)
+  96              {
+  97                  timeout=1;
+  98              }
+  99          }*/
+C51 COMPILER V9.00   MAIN                                                                  03/22/2019 15:58:00 PAGE 3   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION main (BEGIN)
+                                           ; SOURCE LINE # 42
+                                           ; SOURCE LINE # 43
+0000         ?C0001:
+                                           ; SOURCE LINE # 45
+                                           ; SOURCE LINE # 46
+                                           ; SOURCE LINE # 47
+0000 7590AA            MOV     P1,#0AAH
+                                           ; SOURCE LINE # 48
+0003 120000      R     LCALL   L?0012
+                                           ; SOURCE LINE # 49
+0006 759055            MOV     P1,#055H
+                                           ; SOURCE LINE # 50
+0009 120000      R     LCALL   L?0012
+                                           ; SOURCE LINE # 51
+000C 0500        R     INC     i+01H
+000E E500        R     MOV     A,i+01H
+0010 7002              JNZ     ?C0009
+0012 0500        R     INC     i
+0014         ?C0009:
+                                           ; SOURCE LINE # 52
+0014 25E0              ADD     A,ACC
+0016 FF                MOV     R7,A
+0017 E500        R     MOV     A,i
+0019 33                RLC     A
+001A FE                MOV     R6,A
+001B 7400        R     MOV     A,#LOW song
+001D 2F                ADD     A,R7
+001E F582              MOV     DPL,A
+0020 7400        R     MOV     A,#HIGH song
+0022 3E                ADDC    A,R6
+0023 F583              MOV     DPH,A
+0025 7401              MOV     A,#01H
+0027 93                MOVC    A,@A+DPTR
+0028 7002              JNZ     ?C0010
+002A E4                CLR     A
+002B 93                MOVC    A,@A+DPTR
+002C         ?C0010:
+002C 70D2              JNZ     ?C0001
+                                           ; SOURCE LINE # 53
+                                           ; SOURCE LINE # 54
+002E F500        R     MOV     i,A
+0030 F500        R     MOV     i+01H,A
+                                           ; SOURCE LINE # 55
+                                           ; SOURCE LINE # 56
+0032 80CC              SJMP    ?C0001
+             ; FUNCTION main (END)
+
+             ; FUNCTION L?0012 (BEGIN)
+0000 E500        R     MOV     A,i+01H
+0002 25E0              ADD     A,ACC
+0004 FF                MOV     R7,A
+0005 E500        R     MOV     A,i
+0007 33                RLC     A
+0008 FE                MOV     R6,A
+0009 7400        R     MOV     A,#LOW song
+000B 2F                ADD     A,R7
+000C F582              MOV     DPL,A
+000E 7400        R     MOV     A,#HIGH song
+C51 COMPILER V9.00   MAIN                                                                  03/22/2019 15:58:00 PAGE 4   
+
+0010 3E                ADDC    A,R6
+0011 F583              MOV     DPH,A
+0013 7401              MOV     A,#01H
+0015 93                MOVC    A,@A+DPTR
+0016 25E0              ADD     A,ACC
+0018 2400        R     ADD     A,#LOW r
+001A F8                MOV     R0,A
+001B 08                INC     R0
+001C E6                MOV     A,@R0
+001D FF                MOV     R7,A
+             ; FUNCTION _delay (BEGIN)
+                                           ; SOURCE LINE # 58
+;---- Variable 'count' assigned to Register 'R7' ----
+                                           ; SOURCE LINE # 59
+                                           ; SOURCE LINE # 60
+;---- Variable 'j' assigned to Register 'R4/R5' ----
+001E E4                CLR     A
+001F FD                MOV     R5,A
+0020 FC                MOV     R4,A
+                                           ; SOURCE LINE # 61
+0021         ?C0005:
+0021 EF                MOV     A,R7
+0022 FB                MOV     R3,A
+0023 C3                CLR     C
+0024 ED                MOV     A,R5
+0025 9B                SUBB    A,R3
+0026 EC                MOV     A,R4
+0027 9400              SUBB    A,#00H
+0029 5007              JNC     ?C0008
+002B 0D                INC     R5
+002C BD0001            CJNE    R5,#00H,?C0011
+002F 0C                INC     R4
+0030         ?C0011:
+0030 80EF              SJMP    ?C0005
+                                           ; SOURCE LINE # 62
+0032         ?C0008:
+0032 22                RET     
+             ; FUNCTION _delay (END)
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    103    ----
+   CONSTANT SIZE    =     22    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     42    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
