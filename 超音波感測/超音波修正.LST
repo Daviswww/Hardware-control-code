@@ -1,0 +1,107 @@
+C51 COMPILER V9.00   超音杷修正                                                            04/02/2019 10:48:42 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE 超音杷修正
+OBJECT MODULE PLACED IN 超音波修正.OBJ
+COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE 超音波修正.c BROWSE DEBUG OBJECTEXTEND CODE
+
+line level    source
+
+*** WARNING C280 IN LINE 15 OF 超音杷修正.C: 'DIST_BUF': unreferenced local variable
+C51 COMPILER V9.00   超音杷修正                                                            04/02/2019 10:48:42 PAGE 2   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION _delay (BEGIN)
+                                           ; SOURCE LINE # 6
+;---- Variable 's' assigned to Register 'R6/R7' ----
+                                           ; SOURCE LINE # 7
+                                           ; SOURCE LINE # 9
+;---- Variable 'm' assigned to Register 'R4/R5' ----
+0000 E4                CLR     A
+0001 FD                MOV     R5,A
+0002 FC                MOV     R4,A
+0003         ?C0001:
+0003 C3                CLR     C
+0004 ED                MOV     A,R5
+0005 9F                SUBB    A,R7
+0006 EC                MOV     A,R4
+0007 9E                SUBB    A,R6
+0008 5007              JNC     ?C0004
+000A 0D                INC     R5
+000B BD0001            CJNE    R5,#00H,?C0011
+000E 0C                INC     R4
+000F         ?C0011:
+000F 80F2              SJMP    ?C0001
+                                           ; SOURCE LINE # 10
+0011         ?C0004:
+0011 22                RET     
+             ; FUNCTION _delay (END)
+
+             ; FUNCTION main (BEGIN)
+                                           ; SOURCE LINE # 12
+                                           ; SOURCE LINE # 13
+0000         ?C0005:
+                                           ; SOURCE LINE # 16
+                                           ; SOURCE LINE # 17
+                                           ; SOURCE LINE # 18
+;---- Variable 'DIST' assigned to Register 'R3' ----
+0000 E4                CLR     A
+0001 FB                MOV     R3,A
+                                           ; SOURCE LINE # 19
+0002 D2A7              SETB    P27
+                                           ; SOURCE LINE # 20
+0004 7F01              MOV     R7,#01H
+0006 FE                MOV     R6,A
+0007 120000      R     LCALL   _delay
+                                           ; SOURCE LINE # 21
+000A C2A7              CLR     P27
+                                           ; SOURCE LINE # 23
+000C 7F2D              MOV     R7,#02DH
+000E 120000      R     LCALL   _delay
+0011         ?C0007:
+                                           ; SOURCE LINE # 24
+0011 30B2EC            JNB     P32,?C0005
+                                           ; SOURCE LINE # 25
+                                           ; SOURCE LINE # 26
+0014 7F05              MOV     R7,#05H
+0016 7E00              MOV     R6,#00H
+0018 120000      R     LCALL   _delay
+                                           ; SOURCE LINE # 27
+001B 0B                INC     R3
+                                           ; SOURCE LINE # 28
+001C EB                MOV     A,R3
+C51 COMPILER V9.00   超音杷修正                                                            04/02/2019 10:48:42 PAGE 3   
+
+001D C3                CLR     C
+001E 94FA              SUBB    A,#0FAH
+0020 40EF              JC      ?C0007
+                                           ; SOURCE LINE # 29
+                                           ; SOURCE LINE # 30
+0022 7BFA              MOV     R3,#0FAH
+                                           ; SOURCE LINE # 31
+0024 D290              SETB    LED
+                                           ; SOURCE LINE # 32
+0026 120000      R     LCALL   _delay
+                                           ; SOURCE LINE # 33
+0029 C290              CLR     LED
+                                           ; SOURCE LINE # 35
+                                           ; SOURCE LINE # 36
+002B 80E4              SJMP    ?C0007
+             ; FUNCTION main (END)
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     63    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

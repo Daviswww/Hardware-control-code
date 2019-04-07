@@ -36,7 +36,7 @@ main(void)
             sample=0;
             if(cm >= 2 && cm <= 300)
             {
-                convert(cm);
+                P1^0=1;
             }
         }
     }
