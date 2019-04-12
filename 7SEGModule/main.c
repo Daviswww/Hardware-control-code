@@ -22,20 +22,20 @@ main(void)
     {
         for(i = 0; i < 9999; i++)
         {
-            for(j = 0; j < 50; j++)
+            for(j = 0; j < 20; j++)
             {
-                P2 = 0x07;
-                P1 = seg[(i/100)/10];
-                delay(100);
-                P2 = 0x0b;
-                P1 = seg[(i/100)%10];
-                delay(100);
-                P2 = 0x0d;
-                P1 = seg[(i%100)/10];
-                delay(100);
                 P2 = 0x0e;
+                P1 = seg[(i/100)/10];
+                delay(200);
+                P2 = 0x0d;
+                P1 = seg[(i/100)%10];
+                delay(200);
+                P2 = 0x0b;
+                P1 = seg[(i%100)/10];
+                delay(200);
+                P2 = 0x07;
                 P1 = seg[(i%100)%10];
-                delay(100);
+                delay(200);
             }
         }
     }

@@ -3,6 +3,7 @@
 sbit P27=P2^7;
 sbit P32=P3^2;
 sbit LED=P0;
+
 void delay(unsigned int s)
 {
     unsigned int m;
@@ -15,8 +16,6 @@ void main()
 	unsigned char	 DIST_BUF;
 	while(1)
 	{
-		LED=0xFF;
-		DIST=0x00;
 		P27=1;
 		delay(1);
 		P27=0;
@@ -25,13 +24,14 @@ void main()
 		while(P32 == 1)
 		{
 			delay(5);
-			DIST = DIST + 1;
+			DIST = LED + 1;
 			if (DIST>250)
 			{
 				DIST = 250;
-				LED=0x00;
+				LED =0x00;
 			}
 		}
 		DIST_BUF = DIST;
+		P0 = DIST_BUF;
 	}
 }
