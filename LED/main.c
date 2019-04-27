@@ -9,14 +9,14 @@ void main()
 	while(1)
 	{
         LED=0xFF;
-        delay(10000);
+        delay(100000);
         LED=0x00;
-        delay(10000);
+        delay(100000);
 	}
 }
 
-void delay(unsigned int s)
+void delay(unsigned int t)
 {
     unsigned int i;
-    for(i=0; i<s; i++);
+    for(i=0; i<t; i++);
 }

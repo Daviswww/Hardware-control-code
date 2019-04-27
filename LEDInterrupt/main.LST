@@ -1,0 +1,194 @@
+C51 COMPILER V9.00   MAIN                                                                  04/26/2019 15:43:47 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE main.c DEBUG OBJECTEXTEND CODE
+
+line level    source
+
+   1          #include "reg51.h"
+   2          
+   3          unsigned char LED=0x80;
+   4          
+   5          int main()
+   6          {
+   7   1          void delay(unsigned int);
+   8   1      
+   9   1          SP=0x60;
+  10   1          EA=1;
+  11   1          //ET0=1;
+  12   1          IT0=1;
+  13   1          EX0=1;
+  14   1          while(1)
+  15   1          {
+  16   2              P0 =~ LED;
+  17   2              delay(10000);
+  18   2              LED >>= 1;
+  19   2              if(LED==0)
+  20   2              {
+  21   3                  LED=0x80;
+  22   3              }
+  23   2          }
+  24   1      }
+  25          
+  26          void delay(unsigned int t)
+  27          {
+  28   1          int i;
+  29   1          for(i=0; i < t; i++);
+  30   1      }
+  31          
+  32          void EX0_int(void) interrupt 0
+  33          {
+  34   1          unsigned int i;
+  35   1          unsigned char temp;
+  36   1          temp=LED;
+  37   1          P0=0xff;
+  38   1          for(i=0; i<10;i++)
+  39   1          {
+  40   2              delay(10000);
+  41   2              P0^=0xff;
+  42   2          }
+  43   1          LED=temp;
+  44   1      }
+C51 COMPILER V9.00   MAIN                                                                  04/26/2019 15:43:47 PAGE 2   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION main (BEGIN)
+                                           ; SOURCE LINE # 5
+                                           ; SOURCE LINE # 6
+                                           ; SOURCE LINE # 9
+0000 758160            MOV     SP,#060H
+                                           ; SOURCE LINE # 10
+0003 D2AF              SETB    EA
+                                           ; SOURCE LINE # 12
+0005 D288              SETB    IT0
+                                           ; SOURCE LINE # 13
+0007 D2A8              SETB    EX0
+0009         ?C0001:
+                                           ; SOURCE LINE # 14
+                                           ; SOURCE LINE # 15
+                                           ; SOURCE LINE # 16
+0009 E500        R     MOV     A,LED
+000B F4                CPL     A
+000C F580              MOV     P0,A
+                                           ; SOURCE LINE # 17
+000E 7F10              MOV     R7,#010H
+0010 7E27              MOV     R6,#027H
+0012 120000      R     LCALL   _delay
+                                           ; SOURCE LINE # 18
+0015 E500        R     MOV     A,LED
+0017 C3                CLR     C
+0018 13                RRC     A
+0019 F500        R     MOV     LED,A
+                                           ; SOURCE LINE # 19
+001B 70EC              JNZ     ?C0001
+                                           ; SOURCE LINE # 20
+                                           ; SOURCE LINE # 21
+001D 750080      R     MOV     LED,#080H
+                                           ; SOURCE LINE # 22
+                                           ; SOURCE LINE # 23
+0020 80E7              SJMP    ?C0001
+             ; FUNCTION main (END)
+
+             ; FUNCTION _delay (BEGIN)
+                                           ; SOURCE LINE # 26
+;---- Variable 't' assigned to Register 'R6/R7' ----
+                                           ; SOURCE LINE # 27
+                                           ; SOURCE LINE # 29
+;---- Variable 'i' assigned to Register 'R4/R5' ----
+0000 E4                CLR     A
+0001 FD                MOV     R5,A
+0002 FC                MOV     R4,A
+0003         ?C0005:
+0003 C3                CLR     C
+0004 ED                MOV     A,R5
+0005 9F                SUBB    A,R7
+0006 EC                MOV     A,R4
+0007 9E                SUBB    A,R6
+0008 5007              JNC     ?C0008
+000A 0D                INC     R5
+000B BD0001            CJNE    R5,#00H,?C0013
+000E 0C                INC     R4
+000F         ?C0013:
+000F 80F2              SJMP    ?C0005
+                                           ; SOURCE LINE # 30
+C51 COMPILER V9.00   MAIN                                                                  04/26/2019 15:43:47 PAGE 3   
+
+0011         ?C0008:
+0011 22                RET     
+             ; FUNCTION _delay (END)
+
+             ; FUNCTION EX0_int (BEGIN)
+0000 C0E0              PUSH    ACC
+0002 C0D0              PUSH    PSW
+0004 75D000            MOV     PSW,#00H
+0007 C001              PUSH    AR1
+0009 C002              PUSH    AR2
+000B C003              PUSH    AR3
+000D C004              PUSH    AR4
+000F C005              PUSH    AR5
+0011 C006              PUSH    AR6
+0013 C007              PUSH    AR7
+                                           ; SOURCE LINE # 32
+                                           ; SOURCE LINE # 36
+;---- Variable 'temp' assigned to Register 'R1' ----
+0015 A900        R     MOV     R1,LED
+                                           ; SOURCE LINE # 37
+0017 7580FF            MOV     P0,#0FFH
+                                           ; SOURCE LINE # 38
+;---- Variable 'i' assigned to Register 'R2/R3' ----
+001A E4                CLR     A
+001B FB                MOV     R3,A
+001C FA                MOV     R2,A
+001D         ?C0009:
+                                           ; SOURCE LINE # 39
+                                           ; SOURCE LINE # 40
+001D 7F10              MOV     R7,#010H
+001F 7E27              MOV     R6,#027H
+0021 120000      R     LCALL   _delay
+                                           ; SOURCE LINE # 41
+0024 6380FF            XRL     P0,#0FFH
+                                           ; SOURCE LINE # 42
+0027 0B                INC     R3
+0028 BB0001            CJNE    R3,#00H,?C0014
+002B 0A                INC     R2
+002C         ?C0014:
+002C EB                MOV     A,R3
+002D 640A              XRL     A,#0AH
+002F 4A                ORL     A,R2
+0030 70EB              JNZ     ?C0009
+0032         ?C0010:
+                                           ; SOURCE LINE # 43
+0032 8900        R     MOV     LED,R1
+                                           ; SOURCE LINE # 44
+0034 D007              POP     AR7
+0036 D006              POP     AR6
+0038 D005              POP     AR5
+003A D004              POP     AR4
+003C D003              POP     AR3
+003E D002              POP     AR2
+0040 D001              POP     AR1
+0042 D0D0              POP     PSW
+0044 D0E0              POP     ACC
+0046 32                RETI    
+             ; FUNCTION EX0_int (END)
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.00   MAIN                                                                  04/26/2019 15:43:47 PAGE 4   
+
+   CODE SIZE        =    123    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
