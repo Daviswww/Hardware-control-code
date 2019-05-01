@@ -46,9 +46,9 @@ main(void)
             sample=0;
             
             //if(cm >= 2 && cm <= 300)
-            {
+            //{
                 convert(cm);
-            }
+            //}
            //convert(9487);
         }
     }
@@ -62,12 +62,12 @@ void ping(void)
 
     while(!echo_pin);
     TR0=1;
-    while(echo_pin && !TF0);
+    while(echo_pin && !TF0 && TH0 < 0x38);
     TR0=0;
     temp=TH0;
     temp=(temp << 8) | TL0;
     cm = temp / 58;
-    delayMicroseconds(500);
+    delayMicroseconds(200);
 }
 
 void delayMicroseconds(unsigned int count)
@@ -86,6 +86,8 @@ void convert(unsigned int distance)
     buf[1]=(distance%100)/10;
     buf[0]=distance%10;
 }
+
+
 void T1_int(void) interrupt 3
 {
     TH1 = (65536-5000) / 256;
