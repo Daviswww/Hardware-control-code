@@ -73,10 +73,7 @@ void ping(void)
 void delayMicroseconds(unsigned int count)
 {
     unsigned int i;
-    for(i=0; i<count-4; i++)
-    {
-        _nop_();
-    }
+    for(i=0; i<count; i++);
 }
 
 void convert(unsigned int distance)

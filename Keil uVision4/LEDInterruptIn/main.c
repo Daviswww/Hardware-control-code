@@ -47,10 +47,12 @@ void T0_int(void) interrupt 1
     TR0=0;
     TH0=(65536-5000)/256;
     TL0=(65536-5000)%256;
+    
     LED1 = 0;
     delay(1000);
     LED1 = 1; 
     delay(1000);
+
     TR0=1;
 }
 
@@ -59,14 +61,16 @@ void T1_int(void) interrupt 3
     TR1=0;
     TH1=(65536-20000)/256;
     TL1=(65536-20000)%256;
+    
     LED2 = 0;
     delay(4000);
     LED2 = 1; 
     delay(4000);
+
     TR1=1;
 }
-void delay(unsigned int t)
+void delay(unsigned int count)
 {
     unsigned int i;
-    for(i=0; i < t; i++);
+    for(i=0; i < count; i++);
 }

@@ -1,0 +1,272 @@
+C51 COMPILER V9.00   CCARAUTO                                                              05/09/2019 20:47:17 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE CCARAUTO
+OBJECT MODULE PLACED IN CCARAUTO.OBJ
+COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE CCARAUTO.C BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*******************************************************************************
+   2          ;
+   3          ; CARAUTO.asm
+   4          ;
+   5          ; Car with bluetooth and ultrasonic
+   6          ;
+   7          ; SD90 motor speed 60 degree/0.1s, design 90 degree/(20ms*8) then 93 (+-) 4*8 = 125 (2.016ms) or 61 (0.984
+             -ms)
+   8          ;
+   9          ; HC-SR04 UltraSonic Speed 340m/sec, 5Vdc, 15mA, Work Frequency 40 Hz, Measure Angle 15 degree, Dim. 45x20
+             -x15 mm
+  10          ; Distance 2cm (0.11765ms) ~ 400cm (23.53ms), t = 1cm*2/(340m/sec) = 58.825 us
+  11          ; 1. Trig: 10us TTL Pulse, then HC-SR04 generates 8 pulses (40kHz)
+  12          ; 2. Echo: time period, t = 1cm*2/(340m/sec) = 58.825 us
+  13          ;
+  14          ; Use Interrupt USART_RXC for bluetooth and TIMER0 MODE1 for control arduino-car
+  15          ;
+  16          ; Created: 2016/12/03
+  17          ; Author : Chung-Chuan Hou
+  18          ; CLOCK : 11.059 MHz for baud rate 9600
+  19          ;
+  20          ;******************************************************************************/
+  21          
+  22          #include"reg51.h"
+  23          
+  24          
+  25          void convert(unsigned int);
+  26          void delay(unsigned int s);
+  27          sbit P27 = P2^7;
+  28          sbit P32 = P3^2;
+  29          //sbit SMOD= PCON^7;
+  30          unsigned char PSW_BUF; // SAVE PSW in USART INT
+  31          unsigned char SBUF_BUF; // SAVE SBUF for motor control
+  32          unsigned char AUTO; // auto = 0x00 is manual car, auto = 0xff is auto car
+  33          unsigned char DIST; // ULTRASONIC DISTANCE
+  34          unsigned char DIST_BUF; // SAVE DIST
+  35          unsigned char ATEMP,PSWTEMP,DPLTEMP,DPHTEMP;
+  36          unsigned char sample=0;
+  37          unsigned char num=0;
+  38          unsigned char scanline=0x08;
+  39          unsigned char seg[10] =
+  40          {
+  41              0xC0, 0xf9, 0xa4, 0xb0, 0x99,
+  42              0x92, 0x82, 0xf8, 0x80, 0x90
+  43          };
+  44          unsigned char buf[4] = {0, 0, 0, 0};
+  45          void main()
+  46          {
+  47   1              TMOD = 0x21; // SET TIMER1 MODE 2 and TIMER0 MODE 1. (00100001B)
+  48   1              PT0 = 1; //IP.1 SET TIMER0 INTERRUPT HIGH PRIORITY
+  49   1              TF0 = 0; //TCON.5 CLEAR TIMER0 OVERFLOW
+  50   1              TH0 = (65536-20000)/256;
+  51   1              TL0 = (65536-20000)%256; // -20000 = 45536 = #B1E0H
+  52   1              TR0 = 1; //TCON.4 SET TIMER0 RUN
+  53   1      
+C51 COMPILER V9.00   CCARAUTO                                                              05/09/2019 20:47:17 PAGE 2   
+
+  54   1              TH1 = 253; // baud rate 9600=11059000/(32x12x(256-253))
+  55   1              TR1 = 1; //TCON.6 SET TIMER1 RUN
+  56   1              PCON = 0x00;
+  57   1      //      SMOD = 0; // SET PCON.7=0 (SMOD=0)
+  58   1              SCON = 0x50; // SET RS232 MODE1, RX ENABLE
+  59   1      // IE.7(SET ALL INTERRUPT ENABLE);IE.1(ENABLE TIMER0 INTERRUPT); IE.4 (ENABLE USART INT)
+  60   1              IE   = 0x92; // 10010010B
+  61   1      
+  62   1      // Initial value
+  63   1              P0 = 0x00; // observe SBUF
+  64   1              P1 = 0x00; // motor stop
+  65   1              P2 = 0x00; // ultrasonic stop
+  66   1              AUTO = 0x00; // auto = 0x00 is manual car, auto = 0xff is auto car
+  67   1      
+  68   1      // Main-Flow ********************************************
+  69   1              while(1)
+  70   1              {
+  71   2                      DIST = 0x00; // Reset DIST
+  72   2                      P27 = 1; // Trig for ULTRASONIC
+  73   2                      delay(1); // 12 us
+  74   2                      P27 = 0; // Trig for ULTRASONIC         
+  75   2      //-------------------------------------------------------
+  76   2      //              while(P32 == 0) // echo wait
+  77   2                      delay(33); // 400 us
+  78   2                      while(P32 == 1) // echo on
+  79   2                      {
+  80   3                              delay(5); // 5*12us = 60us approximately 58.8us
+  81   3                              DIST = DIST + 1; // distance increases 1cm
+  82   3                              if (DIST > 250)
+  83   3                              {
+  84   4                                      DIST = 250;
+  85   4                              }
+  86   3                              convert(DIST);
+  87   3                      }
+  88   2                      DIST_BUF = DIST; // echo off
+  89   2      //-------------------------------------------------------
+  90   2                      if (AUTO == 0xFF) // auto = 0x00 is manual car, auto = 0xff is auto car
+  91   2                      {
+  92   3                              if (DIST_BUF > 10)
+  93   3                              {
+  94   4                                      P1 = 0x0A; // Forward run #00001010
+  95   4                              }
+  96   3                              else
+  97   3                              {
+  98   4                                      P1 = 0x00; // motor stop
+  99   4                                      delay(8333); // 8333*12us = 0.1 sec
+ 100   4                                      P1 = 0x06; // motor turn left #00000110
+ 101   4                                      delay(41667); // 41667*12us = 0.5sec
+ 102   4                                      P1 = 0x00; // motor stop
+ 103   4                              }
+ 104   3      
+ 105   3                      }
+ 106   2      //-------------------------------------------------------
+ 107   2      
+ 108   2              } // Main-Flow ***************************************
+ 109   1      } // Main
+ 110          
+ 111          void delay(unsigned int s)
+ 112          {
+ 113   1              unsigned int m;
+ 114   1              for(m=0;m<s;m++);
+ 115   1      }
+C51 COMPILER V9.00   CCARAUTO                                                              05/09/2019 20:47:17 PAGE 3   
+
+ 116          
+ 117          /******************************************************************************
+ 118          ; INTERRUPT  USART
+ 119          ;******************************************************************************/
+ 120          void Serial (void) interrupt 4
+ 121          {
+ 122   1              PSW_BUF = PSW; // save PSW
+ 123   1              RI = 0; // clear RI Flag
+ 124   1              P0 = SBUF; // observe SBUF
+ 125   1              SBUF_BUF = SBUF; // save SBUF for motor control
+ 126   1      
+ 127   1      // 'C' = #43H
+ 128   1              if (SBUF_BUF == 0x43)
+ 129   1              {
+ 130   2                      //AUTO = !AUTO; // error using 20180504 
+ 131   2                      AUTO = ~AUTO;// auto = 0x00 is manual car, auto = 0xff is auto car
+ 132   2                      P1 = 0x00; // motor stop
+ 133   2              }
+ 134   1      
+ 135   1              PSW = PSW_BUF; // get PSW
+ 136   1      }
+ 137          
+ 138          /******************************************************************************
+ 139          ; TIMER0_INT 
+ 140          ;******************************************************************************/
+ 141          void Timer0(void) interrupt 1
+ 142          {
+ 143   1              ATEMP  =ACC;
+ 144   1              PSWTEMP=PSW;
+ 145   1              DPLTEMP=DPL;
+ 146   1              DPHTEMP=DPH;
+ 147   1              TR0=0; // STOP TIMER
+ 148   1              TH0  = (65536-20000)/256;
+ 149   1              TL0  = (65536-20000)%256;
+ 150   1              TR0=1; // TIMER0 TO BE CONTINUE
+ 151   1      
+ 152   1              if (AUTO == 0x00) // auto = 0x00 is manual car, auto = 0xff is auto car
+ 153   1              {
+ 154   2                      if (SBUF_BUF == 0x51) // stop, SBUF ='Q' =#51H
+ 155   2                      {
+ 156   3                              P1 = 0x00; // motor stop
+ 157   3                      }
+ 158   2                      else if (SBUF_BUF == 0x53) // back, SBUF ='S' =#53H
+ 159   2                      {
+ 160   3                              P1 = 0x05; // motor back, #00000101B    
+ 161   3                      }
+ 162   2                      else if (SBUF_BUF == 0x44) // right, SBUF ='D' =#44H
+ 163   2                      {
+ 164   3                              P1 = 0x09; // motor right, #00001001B
+ 165   3                      }
+ 166   2                      else if (SBUF_BUF == 0x41) // left, SBUF ='A' =#41H
+ 167   2                      {
+ 168   3                              P1 = 0x06; // motor left, #00000110B
+ 169   3                      }
+ 170   2                      else if (SBUF_BUF == 0x57) // forward, SBUF ='W' =#57H
+ 171   2                      {
+ 172   3                              if (DIST_BUF > 10)
+ 173   3                              {
+ 174   4                                      P1 = 0x0A; // motor forward, #00001010B
+ 175   4                              }
+ 176   3                              else
+ 177   3                              {
+C51 COMPILER V9.00   CCARAUTO                                                              05/09/2019 20:47:17 PAGE 4   
+
+ 178   4                                      P1 = 0x00; // motor stop, short distance
+ 179   4                              }
+ 180   3                      }
+ 181   2                      else
+ 182   2                      {}
+ 183   2              }
+ 184   1      
+ 185   1      // RETURN:
+ 186   1              ACC=ATEMP;
+ 187   1              PSW=PSWTEMP;
+ 188   1              DPL=DPLTEMP;
+ 189   1              DPH=DPHTEMP;
+ 190   1      }
+ 191          void Timer1(void) interrupt 3
+ 192          {
+ 193   1          TH1 = (65536-5000) / 256;
+ 194   1          TL1 = (65536-5000) % 256;
+ 195   1          scanline >>= 1; 
+ 196   1          num++;
+ 197   1          if(scanline == 0)
+ 198   1          {
+ 199   2              scanline = 0x08;
+ 200   2              num = 0;
+ 201   2          }
+ 202   1          P0 = 0xff;
+ 203   1          P2 = ~scanline;
+ 204   1          P0 = seg[buf[num]];
+ 205   1      }
+ 206          
+ 207          void convert(unsigned int distance)
+ 208          {
+ 209   1          buf[3]=distance/1000;
+ 210   1          buf[2]=(distance%1000)/100;
+ 211   1          buf[1]=(distance%100)/10;
+ 212   1          buf[0]=distance%10;
+ 213   1      }
+ 214          /*
+ 215          void main()
+ 216          void INT0 (void) interrupt 0 using 0 // using bank0
+ 217          void Timer0 (void) interrupt 1 using 1 // using bank1
+ 218          void INT1 (void) interrupt 2 using 2 // using bank2
+ 219          void Timer1 (void) interrupt 3 using 3 // using bank3
+ 220          void Serial (void) interrupt 4
+ 221          
+ 222                  ORG     0000H           ;
+ 223                  JMP     START           ;
+ 224          
+ 225                  ORG     0003H           ;
+ 226                  JMP     EXTERNAL_INT0   ;EXTERNAL INT0 INTERRUPT
+ 227          
+ 228                  ORG     000BH           ;
+ 229                  JMP     TIMER0_INT      ;INTERNAL TIMER0 INTERRUPT
+ 230          
+ 231                  ORG     0013H           ;
+ 232                  JMP     EXTERNAL_INT1   ;EXTERNAL INT1 INTERRUPT
+ 233          
+ 234                  ORG     001BH           ;
+ 235                  JMP     TIMER1_INT      ;INTERNAL TIMER1 INTERRUPT
+ 236          
+ 237                  ORG     0023H           ;
+ 238                  JMP     SERIAL_TRANS    ;SERIAL TRANSMISSION INTERRUPT
+ 239          */
+C51 COMPILER V9.00   CCARAUTO                                                              05/09/2019 20:47:17 PAGE 5   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    431    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     26    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

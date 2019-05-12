@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 1   
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
@@ -56,32 +56,36 @@ line level    source
   47   1          TR0=0;
   48   1          TH0=(65536-5000)/256;
   49   1          TL0=(65536-5000)%256;
-  50   1          LED1 = 0;
-  51   1          delay(1000);
-  52   1          LED1 = 1; 
-  53   1          delay(1000);
-  54   1          TR0=1;
-  55   1      }
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 2   
+  50   1          
+  51   1          LED1 = 0;
+  52   1          delay(1000);
+  53   1          LED1 = 1; 
+  54   1          delay(1000);
+  55   1      
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 2   
 
-  56          
-  57          void T1_int(void) interrupt 3
-  58          {
-  59   1          TR1=0;
-  60   1          TH1=(65536-20000)/256;
-  61   1          TL1=(65536-20000)%256;
-  62   1          LED2 = 0;
-  63   1          delay(4000);
-  64   1          LED2 = 1; 
-  65   1          delay(4000);
-  66   1          TR1=1;
-  67   1      }
-  68          void delay(unsigned int t)
-  69          {
-  70   1          unsigned int i;
-  71   1          for(i=0; i < t; i++);
-  72   1      }
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 3   
+  56   1          TR0=1;
+  57   1      }
+  58          
+  59          void T1_int(void) interrupt 3
+  60          {
+  61   1          TR1=0;
+  62   1          TH1=(65536-20000)/256;
+  63   1          TL1=(65536-20000)%256;
+  64   1          
+  65   1          LED2 = 0;
+  66   1          delay(4000);
+  67   1          LED2 = 1; 
+  68   1          delay(4000);
+  69   1      
+  70   1          TR1=1;
+  71   1      }
+  72          void delay(unsigned int count)
+  73          {
+  74   1          unsigned int i;
+  75   1          for(i=0; i < count; i++);
+  76   1      }
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 3   
 
 ASSEMBLY LISTING OF GENERATED OBJECT CODE
 
@@ -145,7 +149,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 0041 758DB1            MOV     TH1,#0B1H
                                            ; SOURCE LINE # 33
 0044 758BE0            MOV     TL1,#0E0H
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 4   
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 4   
 
                                            ; SOURCE LINE # 34
 0047 D28E              SETB    TR1
@@ -190,26 +194,26 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 001F 758CEC            MOV     TH0,#0ECH
                                            ; SOURCE LINE # 49
 0022 758A78            MOV     TL0,#078H
-                                           ; SOURCE LINE # 50
-0025 C280              CLR     LED1
                                            ; SOURCE LINE # 51
+0025 C280              CLR     LED1
+                                           ; SOURCE LINE # 52
 0027 7FE8              MOV     R7,#0E8H
 0029 7E03              MOV     R6,#03H
 002B 120000      R     LCALL   _delay
-                                           ; SOURCE LINE # 52
-002E D280              SETB    LED1
                                            ; SOURCE LINE # 53
+002E D280              SETB    LED1
+                                           ; SOURCE LINE # 54
 0030 7FE8              MOV     R7,#0E8H
 0032 7E03              MOV     R6,#03H
 0034 120000      R     LCALL   _delay
-                                           ; SOURCE LINE # 54
+                                           ; SOURCE LINE # 56
 0037 D28C              SETB    TR0
-                                           ; SOURCE LINE # 55
+                                           ; SOURCE LINE # 57
 0039 D007              POP     AR7
 003B D006              POP     AR6
 003D D005              POP     AR5
 003F D004              POP     AR4
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 5   
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 5   
 
 0041 D003              POP     AR3
 0043 D002              POP     AR2
@@ -238,28 +242,28 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 0017 C005              PUSH    AR5
 0019 C006              PUSH    AR6
 001B C007              PUSH    AR7
-                                           ; SOURCE LINE # 57
                                            ; SOURCE LINE # 59
-001D C28E              CLR     TR1
-                                           ; SOURCE LINE # 60
-001F 758DB1            MOV     TH1,#0B1H
                                            ; SOURCE LINE # 61
-0022 758BE0            MOV     TL1,#0E0H
+001D C28E              CLR     TR1
                                            ; SOURCE LINE # 62
-0025 C283              CLR     LED2
+001F 758DB1            MOV     TH1,#0B1H
                                            ; SOURCE LINE # 63
+0022 758BE0            MOV     TL1,#0E0H
+                                           ; SOURCE LINE # 65
+0025 C283              CLR     LED2
+                                           ; SOURCE LINE # 66
 0027 7FA0              MOV     R7,#0A0H
 0029 7E0F              MOV     R6,#0FH
 002B 120000      R     LCALL   _delay
-                                           ; SOURCE LINE # 64
+                                           ; SOURCE LINE # 67
 002E D283              SETB    LED2
-                                           ; SOURCE LINE # 65
+                                           ; SOURCE LINE # 68
 0030 7FA0              MOV     R7,#0A0H
 0032 7E0F              MOV     R6,#0FH
 0034 120000      R     LCALL   _delay
-                                           ; SOURCE LINE # 66
+                                           ; SOURCE LINE # 70
 0037 D28E              SETB    TR1
-                                           ; SOURCE LINE # 67
+                                           ; SOURCE LINE # 71
 0039 D007              POP     AR7
 003B D006              POP     AR6
 003D D005              POP     AR5
@@ -273,16 +277,16 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 004D D083              POP     DPH
 004F D0F0              POP     B
 0051 D0E0              POP     ACC
-C51 COMPILER V9.00   MAIN                                                                  05/01/2019 19:18:46 PAGE 6   
+C51 COMPILER V9.00   MAIN                                                                  05/05/2019 10:14:20 PAGE 6   
 
 0053 32                RETI    
              ; FUNCTION T1_int (END)
 
              ; FUNCTION _delay (BEGIN)
-                                           ; SOURCE LINE # 68
-;---- Variable 't' assigned to Register 'R6/R7' ----
-                                           ; SOURCE LINE # 69
-                                           ; SOURCE LINE # 71
+                                           ; SOURCE LINE # 72
+;---- Variable 'count' assigned to Register 'R6/R7' ----
+                                           ; SOURCE LINE # 73
+                                           ; SOURCE LINE # 75
 ;---- Variable 'i' assigned to Register 'R4/R5' ----
 0000 E4                CLR     A
 0001 FD                MOV     R5,A
@@ -299,7 +303,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 000E 0C                INC     R4
 000F         ?C0014:
 000F 80F2              SJMP    ?C0009
-                                           ; SOURCE LINE # 72
+                                           ; SOURCE LINE # 76
 0011         ?C0012:
 0011 22                RET     
              ; FUNCTION _delay (END)
