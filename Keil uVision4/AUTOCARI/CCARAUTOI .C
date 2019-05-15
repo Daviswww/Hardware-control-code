@@ -20,39 +20,29 @@
 ;******************************************************************************/
 
 #include"reg51.h"
-
-
-void convert(unsigned int);
 void delay(unsigned int s);
-sbit P27 = P2^7;
-sbit P32 = P3^2;
-//sbit SMOD= PCON^7;
-unsigned char PSW_BUF; // SAVE PSW in USART INT
-unsigned char SBUF_BUF; // SAVE SBUF for motor control
-unsigned char AUTO; // auto = 0x00 is manual car, auto = 0xff is auto car
-unsigned char DIST; // ULTRASONIC DISTANCE
-unsigned char DIST_BUF; // SAVE DIST
-unsigned char ATEMP,PSWTEMP,DPLTEMP,DPHTEMP;
-unsigned char sample=0;
-unsigned char num=0;
-unsigned char scanline=0x08;
-unsigned char seg[10] =
-{
-    0xC0, 0xf9, 0xa4, 0xb0, 0x99,
-    0x92, 0x82, 0xf8, 0x80, 0x90
-};
-unsigned char buf[4] = {0, 0, 0, 0};
+	sbit P27 = P2^7;
+	sbit P32 = P3^2;
+	//sbit SMOD= PCON^7;
+	unsigned char PSW_BUF; // SAVE PSW in USART INT
+	unsigned char SBUF_BUF; // SAVE SBUF for motor control
+	unsigned char AUTO; // auto = 0x00 is manual car, auto = 0xff is auto car
+	unsigned char DIST; // ULTRASONIC DISTANCE
+	unsigned char DIST_BUF; // SAVE DIST
+
+	unsigned char ATEMP,PSWTEMP,DPLTEMP,DPHTEMP;
+
 void main()
 {
+	/*
 	TMOD = 0x21; //	SET TIMER1 MODE 2 and TIMER0 MODE 1. (00100001B)
 	PT0 = 1; //IP.1 SET TIMER0 INTERRUPT HIGH PRIORITY
 	TF0 = 0; //TCON.5 CLEAR TIMER0 OVERFLOW
 	TH0 = (65536-20000)/256;
 	TL0 = (65536-20000)%256; // -20000 = 45536 = #B1E0H
-	TR0 = 1; //TCON.4 SET TIMER0 RUN
+
 
 	TH1 = 253; // baud rate 9600=11059000/(32x12x(256-253))
-	TR1 = 1; //TCON.6 SET TIMER1 RUN
 	PCON = 0x00;
 //	SMOD = 0; // SET PCON.7=0 (SMOD=0)
 	SCON = 0x50; // SET RS232 MODE1, RX ENABLE
@@ -60,20 +50,35 @@ void main()
 	IE   = 0x92; // 10010010B
 
 // Initial value
-	P0 = 0x00; // observe SBUF
+	//P0 = 0x00; // observe SBUF
 	P1 = 0x00; // motor stop
 	P2 = 0x00; // ultrasonic stop
 	AUTO = 0x00; // auto = 0x00 is manual car, auto = 0xff is auto car
+	*/
+	P0 = 0xff;
+	delay(5000);
+	P0 = 0x00;
+	delay(5000);
+	P0 = 0xff;
+	delay(5000);
+	P0 = 0x00;
+	delay(5000);
+	P0 = 0xff;
+	delay(5000);
+	P0 = 0x00;
 
+	//TR1 = 1; //TCON.6 SET TIMER1 RUN
+	//TR0 = 1; //TCON.4 SET TIMER0 RUN
 // Main-Flow ********************************************
 	while(1)
 	{
-		DIST = 0x00; // Reset DIST
-		P27 = 1; // Trig for ULTRASONIC
-		delay(1); // 12 us
-		P27 = 0; // Trig for ULTRASONIC		
+		//DIST = 0x00; // Reset DIST
+		//P27 = 1; // Trig for ULTRASONIC
+		//delay(1); // 12 us
+		//P27 = 0; // Trig for ULTRASONIC		
 //-------------------------------------------------------
 //		while(P32 == 0) // echo wait
+		/*
 		delay(33); // 400 us
 		while(P32 == 1) // echo on
 		{
@@ -83,16 +88,17 @@ void main()
 			{
 				DIST = 250;
 			}
-			convert(DIST);
 		}
 		DIST_BUF = DIST; // echo off
+		*/
 //-------------------------------------------------------
 		if (AUTO == 0xFF) // auto = 0x00 is manual car, auto = 0xff is auto car
 		{
-			if (DIST_BUF > 10)
+			//if (DIST_BUF > 10)
 			{
 				P1 = 0x0A; // Forward run #00001010
 			}
+			/*
 			else
 			{
 				P1 = 0x00; // motor stop
@@ -101,6 +107,7 @@ void main()
 				delay(41667); // 41667*12us = 0.5sec
 				P1 = 0x00; // motor stop
 			}
+			*/
 
 		}
 //-------------------------------------------------------
@@ -121,11 +128,14 @@ void Serial (void) interrupt 4
 {
 	PSW_BUF = PSW; // save PSW
 	RI = 0; // clear RI Flag
-	P0 = SBUF; // observe SBUF
+	//P0 = SBUF; // observe SBUF 
 	SBUF_BUF = SBUF; // save SBUF for motor control
+	P0 = 0xff;
+	delay(5000);
+	P0 = 0x00;
+// 'E' = #45H
 
-// 'C' = #43H
-	if (SBUF_BUF == 0x43)
+	if (SBUF_BUF == 0x45)
 	{
 		//AUTO = !AUTO; // error using 20180504 
 		AUTO = ~AUTO;// auto = 0x00 is manual car, auto = 0xff is auto car
@@ -155,7 +165,7 @@ void Timer0(void) interrupt 1
 		{
 			P1 = 0x00; // motor stop
 		}
-		else if (SBUF_BUF == 0x53) // back, SBUF ='S' =#53H
+		else if (SBUF_BUF == 0x53) // back, SBUF ='S' =#53H 
 		{
 			P1 = 0x05; // motor back, #00000101B	
 		}
@@ -188,29 +198,7 @@ void Timer0(void) interrupt 1
 	DPL=DPLTEMP;
 	DPH=DPHTEMP;
 }
-void Timer1(void) interrupt 3
-{
-    TH1 = (65536-5000) / 256;
-    TL1 = (65536-5000) % 256;
-    scanline >>= 1; 
-    num++;
-    if(scanline == 0)
-    {
-        scanline = 0x08;
-        num = 0;
-    }
-    P0 = 0xff;
-    P2 = ~scanline;
-    P0 = seg[buf[num]];
-}
 
-void convert(unsigned int distance)
-{
-    buf[3]=distance/1000;
-    buf[2]=(distance%1000)/100;
-    buf[1]=(distance%100)/10;
-    buf[0]=distance%10;
-}
 /*
 void main()
 void INT0 (void) interrupt 0 using 0 // using bank0

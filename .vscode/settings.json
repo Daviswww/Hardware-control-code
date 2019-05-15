@@ -1,6 +1,8 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "files.associations": {
-        "CCARAUTO.C": "cpp"
+        "CCARAUTO.C": "cpp",
+        "CCARAUTOII .C": "cpp",
+        "CCARAUTOI .C": "cpp"
     }
 }
