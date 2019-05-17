@@ -1,81 +1,94 @@
-#include "reg51.h"
-#include "intrins.h"
+#include <reg51.h>
 
-sbit trig_pin=P2^6;
-sbit echo_pin=P3^2;
+sbit trig=P3^5;
+sbit LED=P2^4;
 
-unsigned int cm=6666;
-unsigned char sample=0;
-unsigned char num=0;
-unsigned char scanline=0x08;
+void convert(unsigned int);
+void display(unsigned char );
+void delay(unsigned int);
+void delayz(unsigned int);
+void send_pulse(void);
+unsigned int get_range(void);
+void updata(void);
 unsigned char seg[10] =
 {
     0xC0, 0xf9, 0xa4, 0xb0, 0x99,
     0x92, 0x82, 0xf8, 0x80, 0x90
 };
 unsigned char buf[4] = {0, 0, 0, 0};
-void delayMicroseconds(unsigned int);
-void convert(unsigned int);
-void ping(void);
-
-void Delay_us()
+unsigned int cms;
+unsigned char j;
+void main()
 {
-	TL0=0xF5;
-	TH0=0xFF;
-	TR0=1;
-	while (TF0==0);
-	TR0=0;
-	TF0=0;
-}
+    for(j = 0; j < 3; j++)
+    {
+        LED=0x00;
+        delayz(20);
+        LED=0xFF;
+        delayz(10);
+    }
 
-main(void)
-{
-    EA=1;
-    ET1=1;
-    TMOD=0x11;
-    TH1=(65536-5000)/256;
-    TL1=(65536-5000)/256;
-    TR1=1;
-    P1=0xff;
+    TMOD=0x09;//timer0 in 16 bit mode with gate enable
+    TR0=1;//timer run enabled
+    TH0=0x00;
+    TL0=0x00;
+    P3|=0x04;//setting pin P3.2
     while(1)
     {
-        ping();
-        sample++;
-        if(sample >= 50)
+        get_range();
+        delayz(2);
+        if (cms > 15)
         {
-            sample=0;
-            
-            //if(cm >= 2 && cm <= 300)
-            //{
-                convert(cm);
-            //}
-           //convert(9487);
+            P1 = 0x0A; // Forward run #00001010
         }
+        else
+        {
+            P1 = 0x00; // motor stop
+            delay(8333); // 8333*12us = 0.1 sec
+            P1 = 0x06; // motor turn left #00000110
+            delay(15000); // 41667*12us = 0.5sec
+            P1 = 0x00; // motor stop
+        }
+        
     }
 }
-void ping(void)
+void send_pulse(void) 
 {
-    unsigned int temp;
-    trig_pin=1;
-    Delay_us();
-    trig_pin=0;
-
-    while(!echo_pin);
-    TR0=1;
-    while(echo_pin && !TF0 && TH0 < 0x38);
-    TR0=0;
-    temp=TH0;
-    temp=(temp << 8) | TL0;
-    cm = temp / 58;
-    delayMicroseconds(200);
+    TH0=0x00;TL0=0x00;
+    trig=1; //Sending trigger pulse P3^^5
+    delayz(10); //Wait for about 10milliseconds 
+    trig=0; //Turn off trigger
 }
-
-void delayMicroseconds(unsigned int count)
+unsigned int get_range(void)
 {
-    unsigned int i;
-    for(i=0; i<count; i++);
-}
+    long int timer_val,i=0;
+    send_pulse();
+    while(!INT0); //Waiting until echo pulse is detected
+    while(INT0); //Waiting until echo pulse changes its state
+    timer_val=(TH0<<8)+TL0;
 
+    if(timer_val<38000)
+    {
+        cms=timer_val/59;
+        if ((cms!=0)&&(cms<100))
+        {
+            convert(cms);
+            updata();
+        }
+        else
+        {
+            cms=99;
+            updata();
+        }
+    }
+    else
+    {
+        cms=99;
+        updata();
+    }
+    
+    return cms;
+}
 void convert(unsigned int distance)
 {
     buf[3]=distance/1000;
@@ -83,20 +96,32 @@ void convert(unsigned int distance)
     buf[1]=(distance%100)/10;
     buf[0]=distance%10;
 }
-
-
-void T1_int(void) interrupt 3
+void updata(void)
 {
-    TH1 = (65536-5000) / 256;
-    TL1 = (65536-5000) % 256;
-    scanline >>= 1; 
-    num++;
-    if(scanline == 0)
+    P2 = 0x0e;
+    P0 = seg[buf[3]];
+    delayz(4);
+    P2 = 0x0d;
+    P0 = seg[buf[2]];
+    delayz(4);
+    P2 = 0x0b;
+    P0 = seg[buf[1]];
+    delayz(4);
+    P2 = 0x07;
+    P0 = seg[buf[0]];
+    delayz(4);
+}
+void delayz(unsigned int n)
+{
+    unsigned char i;
+    for(n;n>0;n--)
     {
-        scanline = 0x08;
-        num = 0;
+        for(i=250;i>0;i--);
+        for(i=247;i>0;i--);
     }
-    P1 = 0xff;
-    P2 = ~scanline;
-    P1 = seg[buf[num]];
+}
+void delay(unsigned int count)
+{
+	unsigned int i;
+	for(i = 0; i < count; i++);
 }
