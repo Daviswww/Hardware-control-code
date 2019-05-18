@@ -1,7 +1,7 @@
 #include "reg51.h"
 sbit LED=P1^7;
 sbit trig=P3^5;
-
+sbit echo=P3^2;
 
 unsigned int cms;
 unsigned char j;
@@ -31,21 +31,17 @@ void main(void)
         LED=0xFF;
         delay(10000);
     }
-    EA=1;           //Timer
-    ES=1;           //Serial
 
-    TMOD=0x29;      //open timer1 and timer0 in 16 bit mode with gate enable
+    IE = 0x90;
+
+    TMOD=0x29;      //0010open timer1 and timer0 in 16 bit mode with gate enable
     SCON=0x50;      //01010000
     PCON=0x00;
     AUTO=0xFF;      //set NOT AUTO
     TH1=0xFD;       //253
-    ET1=1;
+    
     TR1=1;          //open timer 1
 
-    TR0=1;          //timer run enabled
-    TH0=0x00;
-    TL0=0x00;
-    P3|=0x04;       //setting pin P3.2
     while(1)
     {  
         get_range();    //get cms
@@ -73,10 +69,12 @@ void SCON_int(void) interrupt 4
     {
         RI = 0;
         MYCHAR = SBUF;
+        /*
         LED=0x00;
         delay(1000);
         LED=0xFF;
         delay(1000);
+        */
     }
     //car order
     if(MYCHAR == 'E')
@@ -88,7 +86,7 @@ void SCON_int(void) interrupt 4
     {
         //close auto
         AUTO= 0xFF;
-        P0=0x00;
+        P1=0x00;
     }
     else if(AUTO==0xFF)
     {
@@ -126,12 +124,13 @@ void send_pulse(void)
 
 unsigned int get_range(void)
 {
-    long int timer_val,i=0;
+    long int timer_val;
     send_pulse();
-    
-    while(!INT0); //Waiting until echo pulse is detected
-    while(INT0); //Waiting until echo pulse changes its state
+    TR0=1;
+    while(!echo); //Waiting until echo pulse is detected
+    while(echo); //Waiting until echo pulse changes its state
     timer_val=(TH0<<8)+TL0;
+    TR0=0;
     if(timer_val<38000)
     {
         cms=timer_val/59;
