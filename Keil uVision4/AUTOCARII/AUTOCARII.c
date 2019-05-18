@@ -1,6 +1,7 @@
 #include "reg51.h"
-sbit LED1=0x80;
+sbit LED=P1^7;
 sbit trig=P3^5;
+
 
 unsigned int cms;
 unsigned char j;
@@ -25,13 +26,13 @@ void main(void)
     //ready
     for(j = 0 ; j < 3; j++)
     {
-        LED1=0x00;
+        LED=0x00;
         delay(10000);
-        LED1=0xFF;
+        LED=0xFF;
         delay(10000);
     }
-    ES=1;           //Serial
     EA=1;           //Timer
+    ES=1;           //Serial
 
     TMOD=0x29;      //open timer1 and timer0 in 16 bit mode with gate enable
     SCON=0x50;      //01010000
@@ -41,13 +42,12 @@ void main(void)
     ET1=1;
     TR1=1;          //open timer 1
 
-    TR0=1;//timer run enabled
+    TR0=1;          //timer run enabled
     TH0=0x00;
     TL0=0x00;
-    P3|=0x04;//setting pin P3.2
+    P3|=0x04;       //setting pin P3.2
     while(1)
     {  
-        EA=0;           //close Timer
         get_range();    //get cms
         delayz(2);
         if(AUTO==0x00)
@@ -60,26 +60,22 @@ void main(void)
 			{
             	P1 = 0x00; // motor stop
                 delay(8333);
-                P1 = 0x05; // motor back
-                delay(8333);
 				P1 = 0x06; // motor turn left #00000110
-				delay(8333); // 41667*12us = 0.5sec
-
+				delay(8333);
 			}
         }
-        EA=1;           //open Timer 
-        delay(200);     //wait order
     }
 }
+
 void SCON_int(void) interrupt 4
 {
     if(RI==1)      //wait ri
     {
         RI = 0;
         MYCHAR = SBUF;
-        LED1=0x00;
+        LED=0x00;
         delay(1000);
-        LED1=0xFF;
+        LED=0xFF;
         delay(1000);
     }
     //car order
@@ -92,13 +88,13 @@ void SCON_int(void) interrupt 4
     {
         //close auto
         AUTO= 0xFF;
+        P0=0x00;
     }
     else if(AUTO==0xFF)
     {
         if(MYCHAR == 'W')
         {
             P1 = 0x0A; // motor forward, #00001010B
-
         }
         else if(MYCHAR == 'A')
         {
@@ -107,12 +103,10 @@ void SCON_int(void) interrupt 4
         else if(MYCHAR == 'S')
         {
             P1 = 0x05; // motor back,    #00000101B
-
         }
         else if(MYCHAR == 'D')
         {
             P1 = 0x09; // motor right,   #00001001B
-
         }
         else if(MYCHAR == 'Q')
         {
@@ -123,15 +117,18 @@ void SCON_int(void) interrupt 4
 
 void send_pulse(void) 
 {
-    TH0=0x00;TL0=0x00;
-    trig=1; //Sending trigger pulse P3^^5
+    TH0=0x00;
+    TL0=0x00;
+    trig=1;     //Sending trigger pulse P3^^5
     delayz(10); //Wait for about 10milliseconds 
-    trig=0; //Turn off trigger
+    trig=0;     //Turn off trigger
 }
+
 unsigned int get_range(void)
 {
     long int timer_val,i=0;
     send_pulse();
+    
     while(!INT0); //Waiting until echo pulse is detected
     while(INT0); //Waiting until echo pulse changes its state
     timer_val=(TH0<<8)+TL0;

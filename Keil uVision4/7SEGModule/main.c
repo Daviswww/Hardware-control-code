@@ -7,7 +7,7 @@ unsigned char seg[10] =
     0x92, 0x82, 0xf8, 0x80, 0x90
 };
 unsigned char buf[4] = {0, 0, 0, 0};
-
+void d020(void);
 void delay(unsigned int count)
 {
     unsigned int i;

@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   ARRAYLED                                                              05/10/2019 15:26:41 PAGE 1   
+C51 COMPILER V9.00   ARRAYLED                                                              05/18/2019 00:16:32 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE ARRAYLED
@@ -8,43 +8,39 @@ COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE ARRAYLED.c BROWSE DEBUG OBJECTEX
 line level    source
 
    1          #include "reg51.h"
-   2          sbit LED = 0x90;
-   3          unsigned int j;
-   4          
-   5          main()
-   6          {
-   7   1         
-   8   1          void delay(unsigned int);
-   9   1          for(j = 0; j < 3; j++)
-  10   1          {
-  11   2              LED = 0x00;
-  12   2              delay(100000);
-  13   2              LED = 0xff;
-  14   2              delay(100000);
-  15   2          }
-  16   1          while(1)
-  17   1          {
-  18   2              P2 = 0xff;
-  19   2              delay(100000);
-  20   2              /*
-  21   2              P2 = 0x08;
-  22   2              delay(100000);
-  23   2              P2 = 0x88;
-  24   2              delay(100000);
-  25   2              P2 = 0xC8;
-  26   2              delay(100000);
-  27   2              */
-  28   2              P2 = 0xE8;
-  29   2              delay(100000);
-  30   2      
-  31   2          }
-  32   1      }
-  33          
-  34          void delay(unsigned int count)
-  35          {
-  36   1          unsigned int i;
-  37   1          for(i = 0; i < count; i++);
-  38   1      }
+   2          #define max() {X > Y ? X : Y}
+   3          sbit LED = 0x90;
+   4          unsigned int j;
+   5          unsigned int ALED[3][3] = 
+   6          {{0x78, 0x74, 0x72},
+   7          {0xB8, 0xB4, 0xB2},
+   8          {0xD8, 0xD4, 0xD2}};
+   9          main()
+  10          {
+  11   1         
+  12   1          void delay(unsigned int);
+  13   1          for(j = 0; j < 3; j++)
+  14   1          {
+  15   2              LED = 0x00;
+  16   2              delay(100000);
+  17   2              LED = 0xff;
+  18   2              delay(100000);
+  19   2          }
+  20   1          while(1)
+  21   1          {
+  22   2              P2 = 0xff;
+  23   2              delay(100000);
+  24   2              P2 = 0xB8;
+  25   2              delay(100000);
+  26   2      
+  27   2          }
+  28   1      }
+  29          
+  30          void delay(unsigned int count)
+  31          {
+  32   1          unsigned int i;
+  33   1          for(i = 0; i < count; i++);
+  34   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
@@ -52,7 +48,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      2    ----
+   DATA SIZE        =     20    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

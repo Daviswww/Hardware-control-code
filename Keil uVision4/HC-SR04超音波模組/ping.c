@@ -1,7 +1,8 @@
 #include <reg51.h>
 
-sbit trig=P3^5;
-sbit LED=P2^4;
+sbit trig = P3^5;
+sbit echo = P3^2;
+sbit LED = P2^4;
 
 void convert(unsigned int);
 void display(unsigned char );
@@ -32,24 +33,11 @@ void main()
     TR0=1;//timer run enabled
     TH0=0x00;
     TL0=0x00;
-    P3|=0x04;//setting pin P3.2
+
     while(1)
     {
         get_range();
         delayz(2);
-        if (cms > 15)
-        {
-            P1 = 0x0A; // Forward run #00001010
-        }
-        else
-        {
-            P1 = 0x00; // motor stop
-            delay(8333); // 8333*12us = 0.1 sec
-            P1 = 0x06; // motor turn left #00000110
-            delay(15000); // 41667*12us = 0.5sec
-            P1 = 0x00; // motor stop
-        }
-        
     }
 }
 void send_pulse(void) 
@@ -61,32 +49,18 @@ void send_pulse(void)
 }
 unsigned int get_range(void)
 {
-    long int timer_val,i=0;
+    long int timer_val;
     send_pulse();
-    while(!INT0); //Waiting until echo pulse is detected
-    while(INT0); //Waiting until echo pulse changes its state
+    while(!echo); //Waiting until echo pulse is detected
+    while(echo); //Waiting until echo pulse changes its state
+    TR0=0;
     timer_val=(TH0<<8)+TL0;
-
-    if(timer_val<38000)
+    cms=timer_val/59;
+    delay(200);
+    if(cms > 100)
     {
-        cms=timer_val/59;
-        if ((cms!=0)&&(cms<100))
-        {
-            convert(cms);
-            updata();
-        }
-        else
-        {
-            cms=99;
-            updata();
-        }
+        cms = 99;
     }
-    else
-    {
-        cms=99;
-        updata();
-    }
-    
     return cms;
 }
 void convert(unsigned int distance)

@@ -1,7 +1,11 @@
 #include "reg51.h"
+#define max() {X > Y ? X : Y}
 sbit LED = 0x90;
 unsigned int j;
-
+unsigned int ALED[3][3] = 
+{{0x78, 0x74, 0x72},
+{0xB8, 0xB4, 0xB2},
+{0xD8, 0xD4, 0xD2}};
 main()
 {
    
@@ -17,7 +21,7 @@ main()
     {
         P2 = 0xff;
         delay(100000);
-        P2 = 0xE8;
+        P2 = 0xB8;
         delay(100000);
 
     }

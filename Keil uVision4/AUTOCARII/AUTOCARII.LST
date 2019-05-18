@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   AUTOCARII                                                             05/17/2019 18:26:57 PAGE 1   
+C51 COMPILER V9.00   AUTOCARII                                                             05/18/2019 12:08:26 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE AUTOCARII
@@ -8,7 +8,7 @@ COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE AUTOCARII.c BROWSE DEBUG OBJECTE
 line level    source
 
    1          #include "reg51.h"
-   2          sbit LED1=0x80;
+   2          sbit LED=P1^7;
    3          sbit trig=P3^5;
    4          
    5          unsigned int cms;
@@ -31,18 +31,18 @@ line level    source
   22          void updata(void);
   23          void main(void)
   24          {
-  25   1          
+  25   1          //ready
   26   1          for(j = 0 ; j < 3; j++)
   27   1          {
-  28   2              LED1=0x00;
+  28   2              LED=0x00;
   29   2              delay(10000);
-  30   2              LED1=0xFF;
+  30   2              LED=0xFF;
   31   2              delay(10000);
   32   2          }
-  33   1          ES=1;           //Serial
-  34   1          EA=1;           //Timer
+  33   1          EA=1;           //Timer
+  34   1          ES=1;           //Serial
   35   1      
-  36   1          TMOD=0x29;      //00100001
+  36   1          TMOD=0x29;      //open timer1 and timer0 in 16 bit mode with gate enable
   37   1          SCON=0x50;      //01010000
   38   1          PCON=0x00;
   39   1          AUTO=0xFF;      //set NOT AUTO
@@ -50,201 +50,165 @@ line level    source
   41   1          ET1=1;
   42   1          TR1=1;          //open timer 1
   43   1      
-  44   1          //TMOD=0x09;//timer0 in 16 bit mode with gate enable
-  45   1          TR0=1;//timer run enabled
-  46   1          TH0=0x00;
-  47   1          TL0=0x00;
-  48   1          P3|=0x04;//setting pin P3.2
-  49   1          while(1)
-  50   1          {  
-  51   2              EA=0;           //Timer
-  52   2              get_range();
-  53   2              delayz(2);
-  54   2              if(AUTO==0x00)
-  55   2              {
-C51 COMPILER V9.00   AUTOCARII                                                             05/17/2019 18:26:57 PAGE 2   
+  44   1          TR0=1;          //timer run enabled
+  45   1          TH0=0x00;
+  46   1          TL0=0x00;
+  47   1          P3|=0x04;       //setting pin P3.2
+  48   1          while(1)
+  49   1          {  
+  50   2              get_range();    //get cms
+  51   2              delayz(2);
+  52   2              if(AUTO==0x00)
+  53   2              {
+  54   3                              if (cms > 20)  //>20cms go go
+  55   3                              {
+C51 COMPILER V9.00   AUTOCARII                                                             05/18/2019 12:08:26 PAGE 2   
 
-  56   3                              if (cms > 20)
-  57   3                              {
-  58   4                                      P1 = 0x0A; // Forward run #00001010
-  59   4                              }
-  60   3                              else
-  61   3                              {
-  62   4                      P1 = 0x00; // motor stop
-  63   4                      delay(8333);
-  64   4                      P1 = 0x05; // motor back
-  65   4                      delay(8333);
-  66   4                                      P1 = 0x06; // motor turn left #00000110
-  67   4                                      delay(8333); // 41667*12us = 0.5sec
-  68   4      
-  69   4                              }
-  70   3              }
-  71   2              EA=1;           //Timer 
-  72   2              delay(200);
-  73   2          }
-  74   1      }
-  75          void SCON_int(void) interrupt 4
-  76          {
-  77   1          if(RI==1)
-  78   1          {
-  79   2              RI = 0;
-  80   2              MYCHAR = SBUF;
-  81   2              LED1=0x00;
-  82   2              delay(1000);
-  83   2              LED1=0xFF;
-  84   2              delay(1000);
+  56   4                                      P1 = 0x0A; // Forward run #00001010
+  57   4                              }
+  58   3                              else
+  59   3                              {
+  60   4                      P1 = 0x00; // motor stop
+  61   4                      delay(8333);
+  62   4                                      P1 = 0x06; // motor turn left #00000110
+  63   4                                      delay(8333);
+  64   4                              }
+  65   3              }
+  66   2          }
+  67   1      }
+  68          
+  69          void SCON_int(void) interrupt 4
+  70          {
+  71   1          if(RI==1)      //wait ri
+  72   1          {
+  73   2              RI = 0;
+  74   2              MYCHAR = SBUF;
+  75   2              LED=0x00;
+  76   2              delay(1000);
+  77   2              LED=0xFF;
+  78   2              delay(1000);
+  79   2          }
+  80   1          //car order
+  81   1          if(MYCHAR == 'E')
+  82   1          {
+  83   2              //open auto
+  84   2              AUTO= 0x00;
   85   2          }
-  86   1          if(MYCHAR == 'E')
+  86   1          else if(MYCHAR == 'F')
   87   1          {
-  88   2              AUTO= 0x00;
-  89   2          }
-  90   1          else if(MYCHAR == 'F')
-  91   1          {
-  92   2              AUTO= 0xFF;
-  93   2          }
-  94   1          else if(AUTO==0xFF)
-  95   1          {
-  96   2              if(MYCHAR == 'W')
-  97   2              {
-  98   3                  P1 = 0x0A; // motor forward, #00001010B
-  99   3      
- 100   3              }
- 101   2              else if(MYCHAR == 'A')
- 102   2              {
- 103   3                  P1 = 0x06; // motor left,    #00000110B
- 104   3              }
- 105   2              else if(MYCHAR == 'S')
- 106   2              {
- 107   3                  P1 = 0x05; // motor back,    #00000101B
- 108   3      
+  88   2              //close auto
+  89   2              AUTO= 0xFF;
+  90   2              P0=0x00;
+  91   2          }
+  92   1          else if(AUTO==0xFF)
+  93   1          {
+  94   2              if(MYCHAR == 'W')
+  95   2              {
+  96   3                  P1 = 0x0A; // motor forward, #00001010B
+  97   3              }
+  98   2              else if(MYCHAR == 'A')
+  99   2              {
+ 100   3                  P1 = 0x06; // motor left,    #00000110B
+ 101   3              }
+ 102   2              else if(MYCHAR == 'S')
+ 103   2              {
+ 104   3                  P1 = 0x05; // motor back,    #00000101B
+ 105   3              }
+ 106   2              else if(MYCHAR == 'D')
+ 107   2              {
+ 108   3                  P1 = 0x09; // motor right,   #00001001B
  109   3              }
- 110   2              else if(MYCHAR == 'D')
+ 110   2              else if(MYCHAR == 'Q')
  111   2              {
- 112   3                  P1 = 0x09; // motor right,   #00001001B
- 113   3      
- 114   3              }
- 115   2              else if(MYCHAR == 'Q')
- 116   2              {
- 117   3                  P1 = 0x00; // motor stop
-C51 COMPILER V9.00   AUTOCARII                                                             05/17/2019 18:26:57 PAGE 3   
+ 112   3                  P1 = 0x00; // motor stop
+ 113   3              }
+ 114   2          }
+ 115   1      }
+ 116          
+ 117          void send_pulse(void) 
+C51 COMPILER V9.00   AUTOCARII                                                             05/18/2019 12:08:26 PAGE 3   
 
- 118   3              }
- 119   2          }
- 120   1      }
- 121          /*
- 122          void T0_int(void) interrupt 1
- 123          {
- 124              if(AUTO==0xFF)
- 125              {
- 126                  TR0=0;
- 127                  TH0  = (65536-20000)/256;
- 128                  TL0  = (65536-20000)%256;
- 129                  TR0=1;
- 130                  if(MYCHAR == 'W')
- 131                  {
- 132                      P1 = 0x0A; // motor forward, #00001010B
- 133          
- 134                  }
- 135                  else if(MYCHAR == 'A')
- 136                  {
- 137                      P1 = 0x06; // motor left,    #00000110B
- 138                  }
- 139                  else if(MYCHAR == 'S')
- 140                  {
- 141                      P1 = 0x05; // motor back,    #00000101B
- 142          
- 143                  }
- 144                  else if(MYCHAR == 'D')
- 145                  {
- 146                      P1 = 0x09; // motor right,   #00001001B
- 147          
- 148                  }
- 149                  else if(MYCHAR == 'Q')
- 150                  {
- 151                      P1 = 0x00; // motor stop
- 152                  }
- 153              }
- 154          }
- 155          */
- 156          
- 157          
- 158          void send_pulse(void) 
- 159          {
- 160   1          TH0=0x00;TL0=0x00;
- 161   1          trig=1; //Sending trigger pulse P3^^5
- 162   1          delayz(10); //Wait for about 10milliseconds 
- 163   1          trig=0; //Turn off trigger
- 164   1      }
- 165          unsigned int get_range(void)
- 166          {
- 167   1          long int timer_val,i=0;
- 168   1          send_pulse();
- 169   1          while(!INT0); //Waiting until echo pulse is detected
- 170   1          while(INT0); //Waiting until echo pulse changes its state
- 171   1          timer_val=(TH0<<8)+TL0;
- 172   1          if(timer_val<38000)
- 173   1          {
- 174   2              cms=timer_val/59;
- 175   2              if ((cms!=0)&&(cms<100))
- 176   2              {
- 177   3                  convert(cms);
- 178   3                  updata();
- 179   3              }
-C51 COMPILER V9.00   AUTOCARII                                                             05/17/2019 18:26:57 PAGE 4   
+ 118          {
+ 119   1          TH0=0x00;
+ 120   1          TL0=0x00;
+ 121   1          trig=1;     //Sending trigger pulse P3^^5
+ 122   1          delayz(10); //Wait for about 10milliseconds 
+ 123   1          trig=0;     //Turn off trigger
+ 124   1      }
+ 125          
+ 126          unsigned int get_range(void)
+ 127          {
+ 128   1          long int timer_val,i=0;
+ 129   1          EA=0;
+ 130   1          send_pulse();
+ 131   1          
+ 132   1          while(!INT0); //Waiting until echo pulse is detected
+ 133   1          while(INT0); //Waiting until echo pulse changes its state
+ 134   1          EA=1;
+ 135   1          timer_val=(TH0<<8)+TL0;
+ 136   1          if(timer_val<38000)
+ 137   1          {
+ 138   2              cms=timer_val/59;
+ 139   2              if ((cms!=0)&&(cms<100))
+ 140   2              {
+ 141   3                  convert(cms);
+ 142   3                  updata();
+ 143   3              }
+ 144   2              else
+ 145   2              {
+ 146   3                  cms=99;
+ 147   3                  updata();
+ 148   3              }
+ 149   2          }
+ 150   1          else
+ 151   1          {
+ 152   2              cms=99;
+ 153   2              updata();
+ 154   2          }
+ 155   1          return cms;
+ 156   1      }
+ 157          void convert(unsigned int distance)
+ 158          {
+ 159   1          buf[3]=distance/1000;
+ 160   1          buf[2]=(distance%1000)/100;
+ 161   1          buf[1]=(distance%100)/10;
+ 162   1          buf[0]=distance%10;
+ 163   1      }
+ 164          void updata(void)
+ 165          {
+ 166   1          P2 = 0x0e;
+ 167   1          P0 = seg[buf[3]];
+ 168   1          delay(200);
+ 169   1          P2 = 0x0d;
+ 170   1          P0 = seg[buf[2]];
+ 171   1          delay(200);
+ 172   1          P2 = 0x0b;
+ 173   1          P0 = seg[buf[1]];
+ 174   1          delay(200);
+ 175   1          P2 = 0x07;
+ 176   1          P0 = seg[buf[0]];
+ 177   1          delay(200);
+ 178   1      }
+ 179          void delayz(unsigned int n)
+C51 COMPILER V9.00   AUTOCARII                                                             05/18/2019 12:08:26 PAGE 4   
 
- 180   2              else
- 181   2              {
- 182   3                  cms=99;
- 183   3                  updata();
- 184   3              }
- 185   2          }
- 186   1          else
- 187   1          {
- 188   2              cms=99;
- 189   2              updata();
- 190   2          }
- 191   1          return cms;
+ 180          {
+ 181   1          unsigned char i;
+ 182   1          for(n;n>0;n--)
+ 183   1          {
+ 184   2              for(i=250;i>0;i--);
+ 185   2              for(i=247;i>0;i--);
+ 186   2          }
+ 187   1      }
+ 188          void delay(unsigned int count)
+ 189          {
+ 190   1              unsigned int i;
+ 191   1              for(i = 0; i < count; i++);
  192   1      }
- 193          void convert(unsigned int distance)
- 194          {
- 195   1          buf[3]=distance/1000;
- 196   1          buf[2]=(distance%1000)/100;
- 197   1          buf[1]=(distance%100)/10;
- 198   1          buf[0]=distance%10;
- 199   1      }
- 200          void updata(void)
- 201          {
- 202   1          P2 = 0x0e;
- 203   1          P0 = seg[buf[3]];
- 204   1          delay(200);
- 205   1          P2 = 0x0d;
- 206   1          P0 = seg[buf[2]];
- 207   1          delay(200);
- 208   1          P2 = 0x0b;
- 209   1          P0 = seg[buf[1]];
- 210   1          delay(200);
- 211   1          P2 = 0x07;
- 212   1          P0 = seg[buf[0]];
- 213   1          delay(200);
- 214   1      }
- 215          void delayz(unsigned int n)
- 216          {
- 217   1          unsigned char i;
- 218   1          for(n;n>0;n--)
- 219   1          {
- 220   2              for(i=250;i>0;i--);
- 221   2              for(i=247;i>0;i--);
- 222   2          }
- 223   1      }
- 224          void delay(unsigned int count)
- 225          {
- 226   1              unsigned int i;
- 227   1              for(i = 0; i < count; i++);
- 228   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    605    ----
+   CODE SIZE        =    595    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
