@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   CCARAUTOI_                                                            05/15/2019 01:16:54 PAGE 1   
+C51 COMPILER V9.00   CCARAUTOI_                                                            05/20/2019 12:42:42 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE CCARAUTOI_
@@ -7,251 +7,191 @@ COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE CCARAUTOI .C BROWSE DEBUG OBJECT
 
 line level    source
 
-   1          /*******************************************************************************
-   2          ;
-   3          ; CARAUTO.asm
-   4          ;
-   5          ; Car with bluetooth and ultrasonic
-   6          ;
-   7          ; SD90 motor speed 60 degree/0.1s, design 90 degree/(20ms*8) then 93 (+-) 4*8 = 125 (2.016ms) or 61 (0.984
-             -ms)
-   8          ;
-   9          ; HC-SR04 UltraSonic Speed 340m/sec, 5Vdc, 15mA, Work Frequency 40 Hz, Measure Angle 15 degree, Dim. 45x20
-             -x15 mm
-  10          ; Distance 2cm (0.11765ms) ~ 400cm (23.53ms), t = 1cm*2/(340m/sec) = 58.825 us
-  11          ; 1. Trig: 10us TTL Pulse, then HC-SR04 generates 8 pulses (40kHz)
-  12          ; 2. Echo: time period, t = 1cm*2/(340m/sec) = 58.825 us
-  13          ;
-  14          ; Use Interrupt USART_RXC for bluetooth and TIMER0 MODE1 for control arduino-car
-  15          ;
-  16          ; Created: 2016/12/03
-  17          ; Author : Chung-Chuan Hou
-  18          ; CLOCK : 11.059 MHz for baud rate 9600
-  19          ;
-  20          ;******************************************************************************/
-  21          
-  22          #include"reg51.h"
-  23          void delay(unsigned int s);
-  24                  sbit P27 = P2^7;
-  25                  sbit P32 = P3^2;
-  26                  //sbit SMOD= PCON^7;
-  27                  unsigned char PSW_BUF; // SAVE PSW in USART INT
-  28                  unsigned char SBUF_BUF; // SAVE SBUF for motor control
-  29                  unsigned char AUTO; // auto = 0x00 is manual car, auto = 0xff is auto car
-  30                  unsigned char DIST; // ULTRASONIC DISTANCE
-  31                  unsigned char DIST_BUF; // SAVE DIST
-  32          
-  33                  unsigned char ATEMP,PSWTEMP,DPLTEMP,DPHTEMP;
-  34          
-  35          void main()
-  36          {
-  37   1              /*
-  38   1              TMOD = 0x21; // SET TIMER1 MODE 2 and TIMER0 MODE 1. (00100001B)
-  39   1              PT0 = 1; //IP.1 SET TIMER0 INTERRUPT HIGH PRIORITY
-  40   1              TF0 = 0; //TCON.5 CLEAR TIMER0 OVERFLOW
-  41   1              TH0 = (65536-20000)/256;
-  42   1              TL0 = (65536-20000)%256; // -20000 = 45536 = #B1E0H
-  43   1      
-  44   1      
-  45   1              TH1 = 253; // baud rate 9600=11059000/(32x12x(256-253))
-  46   1              PCON = 0x00;
-  47   1      //      SMOD = 0; // SET PCON.7=0 (SMOD=0)
-  48   1              SCON = 0x50; // SET RS232 MODE1, RX ENABLE
-  49   1      // IE.7(SET ALL INTERRUPT ENABLE);IE.1(ENABLE TIMER0 INTERRUPT); IE.4 (ENABLE USART INT)
-  50   1              IE   = 0x92; // 10010010B
-  51   1      
-  52   1      // Initial value
-  53   1              //P0 = 0x00; // observe SBUF
-C51 COMPILER V9.00   CCARAUTOI_                                                            05/15/2019 01:16:54 PAGE 2   
+   1          #include "reg51.h"
+   2          void delay(unsigned int s);
+   3          sbit LED = 0x80;
+   4          sbit P27 = P2^7;
+   5          sbit P32= P3^2; //sbit SMOD=RCON^7;
+   6          unsigned char PSW_BUF;  //SAVE PSW in USART INT
+   7          unsigned char SBUF_BUF;  //SAVE SBUF for motor control
+   8          unsigned char AUTO;   //auto = 0x00 is manual car,auto = 0xff is auto car
+   9          unsigned char DIST;   //ULTRASONIC DISTANCE
+  10          unsigned char DIST_BUF;  //SAVE DIST
+  11          unsigned char gg;
+  12          unsigned char ATEMP,PSWTEMP,DPLTEMP,DPHTEMP;
+  13          
+  14          void main()
+  15          {
+  16   1              for(gg = 0; gg < 3; gg++)
+  17   1              {
+  18   2                      LED=0x00;
+  19   2                      delay(10000);
+  20   2                      LED=0xFF;
+  21   2                      delay(10000);
+  22   2              }
+  23   1              
+  24   1          TMOD = 0x21;              //SET TIMER1 MODE2 and TIMER0 MODE1. (00100001B)
+  25   1              PT0 = 1;               //IP.1 SET TIMER0 INTERRUPT HIGH PRIORITY
+  26   1              TF0 = 0;               //TCON.5 CLEAR TIMER0 OVERFLOW
+  27   1              TH0 = (65536-20000)/256;
+  28   1              TL0 = (65536-20000)%256; //-20000 = 45536 = #B1E0H
+  29   1              TR0 = 1;                 //TCON.4 SET TIMER0 RUN
+  30   1      
+  31   1              TH1 = 253;     //baud rate 9600=11059000/(32*12*(256-253))
+  32   1              TR1 = 1;     //TCON.6 SET TIMER1 RUN
+  33   1              PCON = 0x00;    //SMOD = 0;//SET PCON.7=0 (SMOD=0)
+  34   1              SCON = 0x50;    //SET RS232 MODE1. RX ENABLE
+  35   1                              //IE.7(SET ALL INTERRUPT ENABLE);IE.1(ENABLE TIMER0 INTERRUPT);IE.4(ENABLE USART INT)
+  36   1              IE = 0x92;     //10010010B
+  37   1              //Initial value
+  38   1              P0 = 0xFF;     //observe SBUF
+  39   1              P1 = 0x00;     //motor stop
+  40   1              P2 = 0x00;     //ultrasonic stop
+  41   1              AUTO = 0x00;    //auto = 0x00 is manual car, auto = 0xff is auto car
+  42   1              //Main Flow------------------------------------------------------------------
+  43   1              while(1)
+  44   1              {
+  45   2                      DIST = 0x00;   //Reset DIST
+  46   2                      P27 = 1;    //Trig for ULRRASONIC
+  47   2                      delay(1);    //12 us
+  48   2                      P27 = 0;    //Trig for ULTRASONIC
+  49   2                      //---------------------------------------------------------------------------
+  50   2                      //    WHILE(P32 == 0)   // echo vait 
+  51   2                      delay(45);      //400us
+  52   2                      while(P32 == 1)     //echo on
+  53   2                      {
+  54   3                              delay(5);     //5*12us = 60us approximately 58.8us
+  55   3                              DIST = DIST + 1; //distance increase 1cm
+C51 COMPILER V9.00   CCARAUTOI_                                                            05/20/2019 12:42:42 PAGE 2   
 
-  54   1              P1 = 0x00; // motor stop
-  55   1              P2 = 0x00; // ultrasonic stop
-  56   1              AUTO = 0x00; // auto = 0x00 is manual car, auto = 0xff is auto car
-  57   1              */
-  58   1              P0 = 0xff;
-  59   1              delay(5000);
-  60   1              P0 = 0x00;
-  61   1              delay(5000);
-  62   1              P0 = 0xff;
-  63   1              delay(5000);
-  64   1              P0 = 0x00;
-  65   1              delay(5000);
-  66   1              P0 = 0xff;
-  67   1              delay(5000);
-  68   1              P0 = 0x00;
-  69   1      
-  70   1              TR1 = 1; //TCON.6 SET TIMER1 RUN
-  71   1              //TR0 = 1; //TCON.4 SET TIMER0 RUN
-  72   1      // Main-Flow ********************************************
-  73   1              while(1)
-  74   1              {
-  75   2                      //DIST = 0x00; // Reset DIST
-  76   2                      //P27 = 1; // Trig for ULTRASONIC
-  77   2                      //delay(1); // 12 us
-  78   2                      //P27 = 0; // Trig for ULTRASONIC               
-  79   2      //-------------------------------------------------------
-  80   2      //              while(P32 == 0) // echo wait
-  81   2                      /*
-  82   2                      delay(33); // 400 us
-  83   2                      while(P32 == 1) // echo on
-  84   2                      {
-  85   2                              delay(5); // 5*12us = 60us approximately 58.8us
-  86   2                              DIST = DIST + 1; // distance increases 1cm
-  87   2                              if (DIST > 250)
-  88   2                              {
-  89   2                                      DIST = 250;
-  90   2                              }
-  91   2                      }
-  92   2                      DIST_BUF = DIST; // echo off
-  93   2                      */
-  94   2      //-------------------------------------------------------
-  95   2                      if (AUTO == 0xFF) // auto = 0x00 is manual car, auto = 0xff is auto car
-  96   2                      {
-  97   3                              //if (DIST_BUF > 10)
-  98   3                              {
-  99   4                                      P1 = 0x0A; // Forward run #00001010
- 100   4                              }
- 101   3                              /*
- 102   3                              else
- 103   3                              {
- 104   3                                      P1 = 0x00; // motor stop
- 105   3                                      delay(8333); // 8333*12us = 0.1 sec
- 106   3                                      P1 = 0x06; // motor turn left #00000110
- 107   3                                      delay(41667); // 41667*12us = 0.5sec
- 108   3                                      P1 = 0x00; // motor stop
- 109   3                              }
- 110   3                              */
- 111   3      
- 112   3                      }
- 113   2      //-------------------------------------------------------
- 114   2      
- 115   2              } // Main-Flow ***************************************
-C51 COMPILER V9.00   CCARAUTOI_                                                            05/15/2019 01:16:54 PAGE 3   
+  56   3                              if (DIST > 250)
+  57   3                              {
+  58   4                                      DIST = 250;
+  59   4                              }
+  60   3                      }
+  61   2       
+  62   2                      DIST_BUF = DIST;   //echo off
+  63   2                      //--------------------------------------------------
+  64   2                      if(AUTO == 0xFF)   //auto = 0x00 is manual car. auto = 0xff is auto car
+  65   2                      {
+  66   3                              if(DIST_BUF > 10)
+  67   3                              {
+  68   4                                      P1 = 0x0A;    //Forward turn #00001010
+  69   4                              }
+  70   3                              else
+  71   3                              {                 
+  72   4                                      P1 = 0x00;    //motor stop
+  73   4                                      delay(8333);   //8333*12us = 0.1sec
+  74   4                                      P1 = 0x06;    //motor turn left #00000110
+  75   4                                      delay(41667);   //41667*12us = 0.5sec
+  76   4                                      P1 = 0x00;    //motor stop
+  77   4                              }
+  78   3                      }
+  79   2      //---------------------------------------------------
+  80   2              }//Main-Flow****************************************
+  81   1      }//Main
+  82          
+  83          void delay(unsigned int s)
+  84          { 
+  85   1              unsigned int m;
+  86   1              for(m=0;m<s;m++);
+  87   1      }
+  88          
+  89          //---------------------------------
+  90          //INTERRUPT USART   RS232cut
+  91          //---------------------------------
+  92          void Serial (void) interrupt 4
+  93          {
+  94   1              PSW_BUF = PSW;       // save PSW
+  95   1              RI = 0;      //clear RI Flag
+  96   1              //P0 = SBUF;     //observe SBUF
+  97   1              SBUF_BUF = SBUF;    //save SBUF for motor control
+  98   1      
+  99   1              //'C' = #43H change
+ 100   1              if (SBUF_BUF == 0x43)
+ 101   1              {
+ 102   2                      AUTO = ~AUTO;    //auto = 0x00 is manual car. auto = 0xff is auto car
+ 103   2                      P1 = 0x00;     //motor stop  ,all MODE will become zero
+ 104   2              }
+ 105   1      
+ 106   1              PSW = PSW_BUF;    //cat PSW
+ 107   1      }
+ 108          
+ 109          
+ 110          //-------------------------------------
+ 111          //TIMER0 INT
+ 112          //--------------------------------------
+ 113          void Timer0(void)  interrupt 1 
+ 114          {
+ 115   1         ATEMP = ACC;
+ 116   1         PSWTEMP = PSW;
+ 117   1         DPLTEMP = DPL;
+C51 COMPILER V9.00   CCARAUTOI_                                                            05/20/2019 12:42:42 PAGE 3   
 
- 116   1      } // Main
- 117          
- 118          void delay(unsigned int s)
- 119          {
- 120   1              unsigned int m;
- 121   1              for(m=0;m<s;m++);
- 122   1      }
- 123          
- 124          /******************************************************************************
- 125          ; INTERRUPT  USART
- 126          ;******************************************************************************/
- 127          void Serial (void) interrupt 4
- 128          {
- 129   1              PSW_BUF = PSW; // save PSW
- 130   1              RI = 0; // clear RI Flag
- 131   1              //P0 = SBUF; // observe SBUF 
- 132   1              SBUF_BUF = SBUF; // save SBUF for motor control
- 133   1              P0 = 0xff;
- 134   1              delay(5000);
- 135   1              P0 = 0x00;
- 136   1      // 'E' = #45H
- 137   1      
- 138   1              if (SBUF_BUF == 0x45)
- 139   1              {
- 140   2                      //AUTO = !AUTO; // error using 20180504 
- 141   2                      AUTO = ~AUTO;// auto = 0x00 is manual car, auto = 0xff is auto car
- 142   2                      P1 = 0x00; // motor stop
- 143   2              }
- 144   1      
- 145   1              PSW = PSW_BUF; // get PSW
- 146   1      }
- 147          
- 148          /******************************************************************************
- 149          ; TIMER0_INT 
- 150          ;******************************************************************************/
- 151          void Timer0(void) interrupt 1
- 152          {
- 153   1              ATEMP  =ACC;
- 154   1              PSWTEMP=PSW;
- 155   1              DPLTEMP=DPL;
- 156   1              DPHTEMP=DPH;
- 157   1              TR0=0; // STOP TIMER
- 158   1              TH0  = (65536-20000)/256;
- 159   1              TL0  = (65536-20000)%256;
- 160   1              TR0=1; // TIMER0 TO BE CONTINUE
- 161   1      
- 162   1              if (AUTO == 0x00) // auto = 0x00 is manual car, auto = 0xff is auto car
- 163   1              {
- 164   2                      if (SBUF_BUF == 0x51) // stop, SBUF ='Q' =#51H
- 165   2                      {
- 166   3                              P1 = 0x00; // motor stop
- 167   3                      }
- 168   2                      else if (SBUF_BUF == 0x53) // back, SBUF ='S' =#53H 
- 169   2                      {
- 170   3                              P1 = 0x05; // motor back, #00000101B    
- 171   3                      }
- 172   2                      else if (SBUF_BUF == 0x44) // right, SBUF ='D' =#44H
- 173   2                      {
- 174   3                              P1 = 0x09; // motor right, #00001001B
- 175   3                      }
- 176   2                      else if (SBUF_BUF == 0x41) // left, SBUF ='A' =#41H
- 177   2                      {
-C51 COMPILER V9.00   CCARAUTOI_                                                            05/15/2019 01:16:54 PAGE 4   
-
- 178   3                              P1 = 0x06; // motor left, #00000110B
- 179   3                      }
- 180   2                      else if (SBUF_BUF == 0x57) // forward, SBUF ='W' =#57H
- 181   2                      {
- 182   3                              if (DIST_BUF > 10)
- 183   3                              {
- 184   4                                      P1 = 0x0A; // motor forward, #00001010B
- 185   4                              }
- 186   3                              else
- 187   3                              {
- 188   4                                      P1 = 0x00; // motor stop, short distance
- 189   4                              }
- 190   3                      }
- 191   2                      else
- 192   2                      {}
- 193   2              }
- 194   1      
- 195   1      // RETURN:
- 196   1              ACC=ATEMP;
- 197   1              PSW=PSWTEMP;
- 198   1              DPL=DPLTEMP;
- 199   1              DPH=DPHTEMP;
- 200   1      }
- 201          
- 202          /*
- 203          void main()
- 204          void INT0 (void) interrupt 0 using 0 // using bank0
- 205          void Timer0 (void) interrupt 1 using 1 // using bank1
- 206          void INT1 (void) interrupt 2 using 2 // using bank2
- 207          void Timer1 (void) interrupt 3 using 3 // using bank3
- 208          void Serial (void) interrupt 4
- 209          
- 210                  ORG     0000H           ;
- 211                  JMP     START           ;
- 212          
- 213                  ORG     0003H           ;
- 214                  JMP     EXTERNAL_INT0   ;EXTERNAL INT0 INTERRUPT
- 215          
- 216                  ORG     000BH           ;
- 217                  JMP     TIMER0_INT      ;INTERNAL TIMER0 INTERRUPT
- 218          
- 219                  ORG     0013H           ;
- 220                  JMP     EXTERNAL_INT1   ;EXTERNAL INT1 INTERRUPT
- 221          
- 222                  ORG     001BH           ;
- 223                  JMP     TIMER1_INT      ;INTERNAL TIMER1 INTERRUPT
- 224          
- 225                  ORG     0023H           ;
- 226                  JMP     SERIAL_TRANS    ;SERIAL TRANSMISSION INTERRUPT
- 227          */
+ 118   1         DPHTEMP = DPH;
+ 119   1         TR0 = 0;        //stop timer
+ 120   1         TH0 = (65536-20000)/256;
+ 121   1         TL0 = (65536-20000)%256;
+ 122   1         TR0 = 1;        //TIMER0 TO BE CONTINUS
+ 123   1      
+ 124   1              if(AUTO == 0x00)      //auto = 0x00 is manual car. auto = 0xff is auto car
+ 125   1              {
+ 126   2                      if (SBUF_BUF == 0x51)    //stop. SBUF ='O' = #51H
+ 127   2                      {
+ 128   3                              P1 = 0x00;      //MOTOR stop
+ 129   3                              P0 = 0xFF;
+ 130   3                      }
+ 131   2                      else if(SBUF_BUF == 0X53)   //back. SBUF ='S' = #53H
+ 132   2                      {
+ 133   3                              P1=0x05;     //motor back. #00000101B
+ 134   3                              P0=0x09;
+ 135   3                      } 
+ 136   2                      else if(SBUF_BUF == 0X44) //right. SBUF = 'D' = #44H
+ 137   2                      {
+ 138   3                              P1=0x09;     //motor RIGHT. #00001001B
+ 139   3                              P0=0x0C;
+ 140   3                      } 
+ 141   2                      else if(SBUF_BUF == 0X41) //left. SBUF ='A' = #41H
+ 142   2                      {
+ 143   3                              P1=0x06;     //moyor left. #00000110B
+ 144   3                              P0=0x03;
+ 145   3                      } 
+ 146   2                      else if(SBUF_BUF == 0X57) //forward. SBUF ='W' = #57H
+ 147   2                      { 
+ 148   3                              if(DIST_BUF > 10)
+ 149   3                              {
+ 150   4                                      P1 = 0x0A;   //motor forward. #00001010B
+ 151   4                                      P0=0x06;
+ 152   4                              }
+ 153   3                              else
+ 154   3                              {
+ 155   4                                      P1 = 0x00;   //motor stop. short distance
+ 156   4                                      P0=0xFF;
+ 157   4                              }
+ 158   3                      }
+ 159   2                      else
+ 160   2                      {}
+ 161   2              }
+ 162   1      
+ 163   1              //RETURM;
+ 164   1              ACC=ATEMP;
+ 165   1              PSW=PSWTEMP;
+ 166   1              DPL=DPLTEMP;
+ 167   1              DPH=DPHTEMP;
+ 168   1      
+ 169   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    227    ----
+   CODE SIZE        =    331    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      9    ----
+   DATA SIZE        =     10    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
+C51 COMPILER V9.00   CCARAUTOI_                                                            05/20/2019 12:42:42 PAGE 4   
+
 END OF MODULE INFORMATION.
 
 

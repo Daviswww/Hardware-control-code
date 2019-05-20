@@ -1,6 +1,6 @@
 #include "reg51.h"
 
-sbit LED = 0x90;
+sbit LED=P1^7;
 unsigned int i;
 void delay(unsigned int );
 void main(void)
@@ -12,11 +12,15 @@ void main(void)
         LED = 0xFF;
         delay(100000);
     }
-
+    P1 = 0x06; // Forward run #00001010
+    delay(4166);
+    P1 = 0x00; // Forward run #00001010
     while (1)
     {
-
-        P0=80;
+        LED = 0x00;
+        delay(100000);
+        LED = 0xFF;
+        delay(100000);
     }
 }
 

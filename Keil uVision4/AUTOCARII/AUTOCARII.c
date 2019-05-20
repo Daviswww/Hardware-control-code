@@ -1,5 +1,7 @@
 #include "reg51.h"
 sbit LED=P1^7;
+sbit BZ=P3^6;
+
 sbit trig=P3^5;
 sbit echo=P3^2;
 
@@ -27,8 +29,11 @@ void main(void)
     for(j = 0 ; j < 3; j++)
     {
         LED=0x00;
+        BZ=0x00;
         delay(10000);
+        
         LED=0xFF;
+        BZ=0xFF;
         delay(10000);
     }
 
@@ -51,13 +56,15 @@ void main(void)
 			if (cms > 20)  //>20cms go go
 			{
 				P1 = 0x0A; // Forward run #00001010
+                BZ=0xFF;
 			}
 			else
 			{
+                BZ=0x00;
             	P1 = 0x00; // motor stop
                 delay(8333);
 				P1 = 0x06; // motor turn left #00000110
-				delay(8333);
+				delay(4166);
 			}
         }
     }
@@ -69,12 +76,6 @@ void SCON_int(void) interrupt 4
     {
         RI = 0;
         MYCHAR = SBUF;
-        /*
-        LED=0x00;
-        delay(1000);
-        LED=0xFF;
-        delay(1000);
-        */
     }
     //car order
     if(MYCHAR == 'E')
@@ -110,6 +111,7 @@ void SCON_int(void) interrupt 4
         {
             P1 = 0x00; // motor stop
         }
+        LED=0xFF;
     }
 }
 
