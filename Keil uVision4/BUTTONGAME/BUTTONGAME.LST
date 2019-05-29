@@ -1,4 +1,4 @@
-C51 COMPILER V9.00   BUTTONGAME                                                            05/19/2019 02:22:24 PAGE 1   
+C51 COMPILER V9.00   BUTTONGAME                                                            05/20/2019 21:43:39 PAGE 1   
 
 
 C51 COMPILER V9.00, COMPILATION OF MODULE BUTTONGAME
@@ -8,44 +8,140 @@ COMPILER INVOKED BY: D:\KEILC 4\C51\BIN\C51.EXE BUTTONGAME.c BROWSE DEBUG OBJECT
 line level    source
 
    1          #include "reg51.h"
-   2          
-   3          sbit LED=P1^7;
-   4          unsigned int i;
-   5          void delay(unsigned int );
-   6          void main(void)
-   7          {
-   8   1          for(i = 0; i < 3; i++)
-   9   1          {
-  10   2              LED = 0x00;
-  11   2              delay(100000);
-  12   2              LED = 0xFF;
-  13   2              delay(100000);
-  14   2          }
-  15   1          P1 = 0x06; // Forward run #00001010
-  16   1          delay(4166);
-  17   1          P1 = 0x00; // Forward run #00001010
-  18   1          while (1)
-  19   1          {
-  20   2              LED = 0x00;
-  21   2              delay(100000);
-  22   2              LED = 0xFF;
-  23   2              delay(100000);
-  24   2          }
-  25   1      }
-  26          
-  27          void delay(unsigned int count)
-  28          {
-  29   1          unsigned int j;
-  30   1          for(j = 0; j < count; j++);
-  31   1      }
+   2          #define GPIO_KEY P2   //矩陣按鍵
+   3          sbit ready=0x90;
+   4          
+   5          
+   6          void delay(unsigned int );
+   7          //void test(void);
+   8          void key_down(void);
+   9          unsigned int LED[3][3] = 
+  10          {
+  11              { 0x27, 0x47, 0x87},
+  12              { 0x2B, 0x4B, 0x8B},
+  13              { 0x2D, 0x4D, 0x8D}
+  14          };
+  15          unsigned int rankKey[5] = {2, 4, 6, 7, 9};
+  16          
+  17          unsigned int RANK[4][9] = 
+  18          {
+  19              {0x47, 0x4B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+  20              {0x27, 0x8D, 0x4B, 0x27, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+  21              {0x27, 0x8D, 0x4B, 0x2B, 0x47, 0x2D, 0xFF, 0xFF, 0xFF},
+  22              {0x47, 0x8D, 0x4B, 0x47, 0x47, 0x2D, 0x2B, 0xFF, 0xFF}
+  23          };
+  24          void main(void)
+  25          {
+  26   1          unsigned int i;
+  27   1          for(i = 0; i < 3; i++)
+  28   1          {
+  29   2              ready = 0x00;
+  30   2              delay(10000);
+  31   2              ready = 0xFF;
+  32   2              delay(10000);
+  33   2          }
+  34   1          //10000010
+  35   1          IE=0x82;
+  36   1          TMOD=0x01;
+  37   1          TH0=(65536-20000)/256;
+  38   1          TL0=(65536-20000)%256;
+  39   1          TR0=1;
+  40   1      
+  41   1          while (1)
+  42   1          {
+  43   2              ready = 0x00;
+  44   2              delay(10000);
+  45   2              ready = 0xFF;
+  46   2              delay(10000);
+  47   2          }
+  48   1      }
+  49          void key_down(void ) interrupt 1
+  50          {
+  51   1          unsigned int R;
+  52   1          unsigned int L;
+  53   1          unsigned int T;
+  54   1          TR0=0;
+  55   1          TH0=(65536-20000)/256;
+C51 COMPILER V9.00   BUTTONGAME                                                            05/20/2019 21:43:39 PAGE 2   
+
+  56   1          TL0=(65536-20000)%256;
+  57   1          TR0=1;
+  58   1          //reset
+  59   1          R=0;
+  60   1          L=0;
+  61   1          T=0;
+  62   1          
+  63   1          GPIO_KEY = 0x0F;
+  64   1          if( GPIO_KEY != 0x0F )
+  65   1          { 
+  66   2              if( GPIO_KEY != 0x0F )
+  67   2              {
+  68   3                  //H
+  69   3                  switch( GPIO_KEY ){
+  70   4                      case 0x07:
+  71   4                          R = 0;
+  72   4                          break;
+  73   4                      case 0x0D:
+  74   4                          R = 1;
+  75   4                          break;
+  76   4                      case 0x0B:
+  77   4                          R = 2;
+  78   4                          break;
+  79   4                  }
+  80   3                  //L
+  81   3                  GPIO_KEY = 0xF0;
+  82   3                  switch( GPIO_KEY ){
+  83   4                      case 0x70:
+  84   4                          L = 0;
+  85   4                          break;
+  86   4                      case 0xD0:
+  87   4                          L = 1;
+  88   4                          break;
+  89   4                      case 0xB0:
+  90   4                          L = 2;
+  91   4                          break;
+  92   4                  }
+  93   3      
+  94   3                  P0 = LED[R][L];
+  95   3                  delay(10000);
+  96   3                  P0=0x00;
+  97   3                  /*
+  98   3                  //如果一直按下按鍵，等待500ms，強制退出
+  99   3                  while( ( T < 5 ) && ( GPIO_KEY != 0xF0 ) ) {
+ 100   3                      T++;
+ 101   3                  }
+ 102   3                  */
+ 103   3              }
+ 104   2          }
+ 105   1      }/*
+ 106          void test(void)
+ 107          {
+ 108              for(i = 0; i < 3; i++)
+ 109              {
+ 110                  for(j = 0; j < 3; j++)
+ 111                  {
+ 112                      P0=LED[i][j];
+ 113                      delay(10000);
+ 114                      P0=LED[i][j];
+ 115                      delay(10000);
+ 116                  }
+ 117              }
+C51 COMPILER V9.00   BUTTONGAME                                                            05/20/2019 21:43:39 PAGE 3   
+
+ 118          }*/
+ 119          void delay(unsigned int count)
+ 120          {
+ 121   1          unsigned int k;
+ 122   1          for(k = 0; k < count; k++);
+ 123   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     77    ----
+   CODE SIZE        =    260    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =      2    ----
+   DATA SIZE        =    100       6
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

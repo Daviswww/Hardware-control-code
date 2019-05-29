@@ -42,7 +42,7 @@ void main(void)
     TMOD=0x29;      //0010open timer1 and timer0 in 16 bit mode with gate enable
     SCON=0x50;      //01010000
     PCON=0x00;
-    AUTO=0xFF;      //set NOT AUTO
+    AUTO=0x00;      //set NOT AUTO
     TH1=0xFD;       //253
     
     TR1=1;          //open timer 1
@@ -61,12 +61,13 @@ void main(void)
 			else
 			{
                 BZ=0x00;
-            	P1 = 0x00; // motor stop
-                delay(8333);
+            	P1 = 0x05; // motor back
+                delay(20834);
 				P1 = 0x06; // motor turn left #00000110
-				delay(4166);
+				delay(8332);
 			}
         }
+        //P1=0x00;
     }
 }
 
@@ -77,6 +78,7 @@ void SCON_int(void) interrupt 4
         RI = 0;
         MYCHAR = SBUF;
     }
+    
     //car order
     if(MYCHAR == 'E')
     {
