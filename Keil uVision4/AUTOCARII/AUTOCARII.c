@@ -17,7 +17,6 @@ unsigned char seg[10] =
 };
 unsigned char buf[4] = {0, 0, 0, 0};
 void convert(unsigned int);
-void display(unsigned char );
 void delayz(unsigned int);
 void delay(unsigned int);
 void send_pulse(void);
@@ -38,13 +37,11 @@ void main(void)
     }
 
     IE = 0x90;
-
     TMOD=0x29;      //0010open timer1 and timer0 in 16 bit mode with gate enable
     SCON=0x50;      //01010000
     PCON=0x00;
     AUTO=0x00;      //set NOT AUTO
     TH1=0xFD;       //253
-    
     TR1=1;          //open timer 1
 
     while(1)
